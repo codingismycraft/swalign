@@ -14,6 +14,7 @@ TEST = $(TEST_DIR)/test_score_matrix.cpp
 test: $(SRC) $(TEST)
 	@mkdir -p $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) $(SRC) $(TEST) -o $(BIN_DIR)/$@
+	$(BIN_DIR)/$@
 
 clean:
 	rm -f $(BIN_DIR)/*
