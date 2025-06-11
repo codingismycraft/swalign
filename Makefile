@@ -10,13 +10,11 @@ BIN_DIR = ./bin
 SRC = $(SRC_DIR)/score_matrix.cpp
 TEST = $(TEST_DIR)/test_score_matrix.cpp
 
-# Output binary
-TARGET = test
 
-$(TARGET): $(SRC) $(TEST)
+test: $(SRC) $(TEST)
 	@mkdir -p $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) $(SRC) $(TEST) -o $(BIN_DIR)/$(TARGET)
+	$(CXX) $(CXXFLAGS) $(SRC) $(TEST) -o $(BIN_DIR)/$@
 
 clean:
-	rm -f $(BIN_DIR)/$(TARGET)
+	rm -f $(BIN_DIR)/*
 
