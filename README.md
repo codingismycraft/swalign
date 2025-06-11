@@ -1,2 +1,4 @@
-# bio_matcher
-Implements DNA/ RNA/ Protein sequence matching.
+# Local Align
+
+A C++ implementation of the Smith-Waterman algorithm for local sequence
+alignment.

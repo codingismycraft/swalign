@@ -30,3 +30,118 @@
 *.exe
 *.out
 *.app
+
+
+
+# Compiled object files
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lib
+*.a
+
+# Executables
+*.exe
+*.out
+*.app
+*.run
+
+# Debug files
+*.dSYM/
+*.stackdump
+
+# Build directories
+build/
+Build/
+bin/
+Bin/
+Debug/
+Release/
+
+# CMake files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+install_manifest.txt
+
+# Qt Creator files
+*.pro.user
+*.qmake.stash
+
+# CodeLite files
+*.project
+*.workspace
+
+# KDevelop files
+*.kdev4
+
+# CLion files
+.idea/
+
+# Visual Studio files
+*.vcxproj*
+*.sln
+*.opensdf
+*.sdf
+*.ipch
+*.user
+*.db
+*.opendb
+
+# Other editor files
+*~
+*.swp
+*.swo
+
+
+
+ # Compiled object files
+ *.o
+ *.obj
+
+ # Executables
+ *.exe
+ *.out
+ *.app
+
+ # Libraries
+ *.lib
+ *.a
+ *.so
+ *.dll
+
+ # Dependency files
+ *.d
+
+ # Build directories
+ build/
+ bin/
+ out/
+ cmake-build-*/
+
+ # IDE project files
+ *.sln
+ *.vcxproj
+ *.vcxproj.filters
+ *.vcxproj.user
+ *.idea/
+ *.vscode/
+
+ # Temporary files
+ *.tmp
+ *~
+
+ # OS-specific files
+ .DS_Store
+ Thumbs.db
