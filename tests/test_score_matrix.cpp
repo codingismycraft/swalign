@@ -42,9 +42,13 @@ void testScoreMatrix(){
             assert(retrieved == expected);
         }
     }
+
+    auto max_position = scoreMatrix.getMaxPosition();
+    assert(max_position.first == 5);
+    assert(max_position.second == 5);
+    assert(scoreMatrix.getLocalAlignment() == "AC*TC");
+    std::cout << "Local Alignment:" << scoreMatrix.getLocalAlignment() << std::endl;
 }
-
-
 
 
 int main(){

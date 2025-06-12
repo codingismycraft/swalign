@@ -3,6 +3,7 @@
 #include "score_matrix.h"
 
 #include <algorithm>
+#include <assert.h>
 #include <iomanip>
 #include <sstream>
 #include <string>
@@ -21,6 +22,12 @@ ScoreMatrix::ScoreMatrix( const std::string& s1, const std::string& s2,
 {
     initializeMatrix();
 }
+
+std::string ScoreMatrix::getLocalAlignment() const
+{
+    return m_local_alignment;
+}
+
 
 std::string ScoreMatrix::getSequence1() const {
     return m_sequence1;
@@ -47,6 +54,11 @@ int ScoreMatrix::getScore(int row, int col) const {
 void ScoreMatrix::initializeMatrix() const{
     m_matrix.push_back(std::vector<int>(getColCount(), 0));
 
+    m_max_position.first = 0;
+    m_max_position.second = 0;
+
+    int max_score = 0;
+
     for (int i = 1; i < getRowCount(); ++i) {
         std::vector<int> row;
         row.push_back(0);
@@ -66,10 +78,24 @@ void ScoreMatrix::initializeMatrix() const{
             int score_up = m_matrix[i - 1][j] + m_gap_penalty;
             int score_left = row[j - 1] + m_gap_penalty;
 
-            row.push_back(std::max({score_diagonal, score_up, score_left, 0}));
+            const int score = std::max({score_diagonal, score_up, score_left, 0});
+
+            if (score > max_score) {
+                max_score = score;
+                m_max_position.first = i;
+                m_max_position.second = j;
+            }
+
+            row.push_back(score);
         }
         m_matrix.push_back(row);
     }
+
+    traceback();
+}
+
+std::pair<int, int> ScoreMatrix::getMaxPosition() const {
+    return m_max_position;
 }
 
 std::string ScoreMatrix::to_str() const {
@@ -96,5 +122,98 @@ std::string ScoreMatrix::to_str() const {
         oss << "\n" << separator;
     }
     return oss.str();
+}
+
+/*
+Traceback Mechanism in Smith-Waterman Algorithm
+
+After filling the dynamic programming matrix (H) according to the
+Smith-Waterman algorithm for local sequence alignment, the traceback step is
+used to recover the optimal local alignment. The mechanism works as follows:
+
+1. Identify the cell in H with the highest score. This cell marks the end of
+the best local alignment.
+
+2. Begin the traceback from this highest-scoring cell. At each step:
+
+- If the current cell’s score came from a diagonal move (match/mismatch), move
+diagonally (i-1, j-1).
+
+- If the current cell’s score came from an up move (gap in sequence B), move up
+(i-1, j).
+
+- If the current cell’s score came from a left move (gap in sequence A), move
+left (i, j-1).
+
+- Stop the traceback when a cell with score 0 is reached (the beginning of the
+local alignment).
+
+3. As you traceback, record each move:
+   - Diagonal: match or mismatch
+   - Up: gap in sequence B
+   - Left: gap in sequence A
+
+4. After reaching a cell with score 0, reverse the recorded moves to construct
+the optimal local alignment.
+
+In summary, the traceback in Smith-Waterman starts from the highest-scoring
+cell and follows the path of score origins (diagonal, up, or left) until a cell
+with score zero is reached, producing the best local alignment.
+*/
+void ScoreMatrix::traceback() const {
+    std::vector<char> longest_sequence;
+    m_local_alignment = "";
+    int row = m_max_position.first;
+    int col = m_max_position.second;
+
+    for(;;){
+        if (row <= 0 || col <=0)
+        {
+            break;
+        }
+
+        const int current_score = m_matrix[row][col];
+
+        if (current_score <= 0 )
+        {
+            break;
+        }
+
+        if (m_sequence1[row-1] == m_sequence2[col - 1])
+        {
+           longest_sequence.push_back(m_sequence1[row-1]);
+        }
+        else
+        {
+           longest_sequence.push_back('*');
+        }
+
+        if (current_score - m_matrix[row-1][col-1] == 2)
+        {
+            row -= 1;
+            col -= 1;
+        }
+        else if (current_score - m_matrix[row-1][col-1] == -1)
+        {
+            row -= 1;
+            col -= 1;
+        }
+        else if (current_score - m_matrix[row-1][col] == -2)
+        {
+            row -= 1;
+        }
+        else if (current_score - m_matrix[row][col-1] == -2)
+        {
+            col -= 1;
+        }
+        else
+        {
+            assert (current_score == 0);
+            break;
+        }
+    }
+
+    std::reverse(longest_sequence.begin(), longest_sequence.end());
+    m_local_alignment = std::string(longest_sequence.begin(), longest_sequence.end());
 }
 
