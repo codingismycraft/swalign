@@ -110,24 +110,45 @@ std::string ScoreMatrix::to_str() const {
 
     // Build horizontal separator
     std::string separator;
-    for (size_t col = 0; col < m_matrix[0].size(); ++col) {
+    // The separator needs to cover one extra for the row label column.
+    for (size_t col = 0; col < m_matrix[0].size() + 1; ++col) {
         separator += std::string(width, '_');
-        if (col + 1 < m_matrix[0].size()) separator += "|";
+        if (col + 1 < m_matrix[0].size() + 1) separator += "|";
     }
     separator += "\n";
 
-    // Header separator
+    // Print top separator
     oss << separator;
-    // Rows
-    for (const auto& row : m_matrix) {
-        for (size_t col = 0; col < row.size(); ++col) {
-            oss << std::setw(width) << row[col];
-            if (col + 1 < row.size()) oss << "|";
+
+    // Print header row: empty cell, then m_sequence1 characters as column headers
+    oss << std::setw(width) << ' ';
+
+    oss << "|" << std::setw(width) << ' ';
+    for (size_t col = 0; col < m_sequence1.size(); ++col) {
+        oss << "|" << std::setw(width) << m_sequence1[col];
+    }
+    // The number of columns for the sequence is m_sequence1.size(), which matches m_matrix[0].size()-1,
+    // so we need one more empty cell at the end to match the bottom rows.
+    oss << "\n" << separator;
+
+    // Print all matrix rows
+    for (size_t row = 0; row < m_matrix.size(); ++row) {
+        // First column: empty for first row, else m_sequence2 character
+        if (row == 0) {
+            oss << std::setw(width) << ' ';
+        } else {
+            oss << std::setw(width) << m_sequence2[row - 1];
+        }
+        // Print all matrix columns for this row
+        for (size_t col = 0; col < m_matrix[row].size(); ++col) {
+            oss << "|" << std::setw(width) << m_matrix[row][col];
         }
         oss << "\n" << separator;
     }
+
     return oss.str();
 }
+
 
 /*
 Traceback Mechanism in Smith-Waterman Algorithm
