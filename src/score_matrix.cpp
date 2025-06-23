@@ -80,9 +80,8 @@ void ScoreMatrix::initializeMatrix() const{
             }
 
 
-            int score_up = m_matrix[i - 1][j] + m_gap_penalty;
-            int score_left = row[j - 1] + m_gap_penalty;
-
+            const int score_up = m_matrix[i - 1][j] + m_gap_penalty;
+            const int score_left = row[j - 1] + m_gap_penalty;
             const int score = std::max({score_diagonal, score_up, score_left, 0});
 
             if (score >= max_score) {
@@ -150,42 +149,6 @@ std::string ScoreMatrix::to_str() const {
 }
 
 
-/*
-Traceback Mechanism in Smith-Waterman Algorithm
-
-After filling the dynamic programming matrix (H) according to the
-Smith-Waterman algorithm for local sequence alignment, the traceback step is
-used to recover the optimal local alignment. The mechanism works as follows:
-
-1. Identify the cell in H with the highest score. This cell marks the end of
-the best local alignment.
-
-2. Begin the traceback from this highest-scoring cell. At each step:
-
-- If the current cell’s score came from a diagonal move (match/mismatch), move
-diagonally (i-1, j-1).
-
-- If the current cell’s score came from an up move (gap in sequence B), move up
-(i-1, j).
-
-- If the current cell’s score came from a left move (gap in sequence A), move
-left (i, j-1).
-
-- Stop the traceback when a cell with score 0 is reached (the beginning of the
-local alignment).
-
-3. As you traceback, record each move:
-   - Diagonal: match or mismatch
-   - Up: gap in sequence B
-   - Left: gap in sequence A
-
-4. After reaching a cell with score 0, reverse the recorded moves to construct
-the optimal local alignment.
-
-In summary, the traceback in Smith-Waterman starts from the highest-scoring
-cell and follows the path of score origins (diagonal, up, or left) until a cell
-with score zero is reached, producing the best local alignment.
-*/
 void ScoreMatrix::traceback() const {
     std::vector<char> longest_sequence;
     m_local_alignment = "";
