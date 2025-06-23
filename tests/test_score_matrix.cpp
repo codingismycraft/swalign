@@ -71,8 +71,8 @@ void test3(){
 }
 
 void test4(){
-    const std::string s1 = "LSPADKTNVKAA";
-    const std::string s2 = "PEEKSAV";
+    const std::string s1 = "GATTACA";
+    const std::string s2 = "GCATGCU";
 
     ScoreMatrix scoreMatrix(s1, s2, 2, -1, -1);
     const std::string expected_str = scoreMatrix.to_str();
@@ -80,12 +80,28 @@ void test4(){
     std::cout << "Local Alignment:" << scoreMatrix.getLocalAlignment() << std::endl;
 }
 
+void test5(){
+    const std::string s1 = "AGA";
+    const std::string s2 = "ATA";
+
+    ScoreMatrix scoreMatrix(s1, s2, 2, -1, -1);
+    std::cout << scoreMatrix.to_str() << std::endl;
+
+    const std::string retrieved = scoreMatrix.getLocalAlignment();
+    const std::string expected = "\nAGA\n*|*\nATA\n";
+
+
+    assert (retrieved == expected);
+
+    std::cout << "Local Alignment:" << retrieved<< std::endl;
+}
+
 
 int main(){
-    testScoreMatrix();
+    //testScoreMatrix();
     //test2();
-    //test3();
-    //test4();
+    test4();
+    //test5();
 }
 
 

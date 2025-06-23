@@ -148,70 +148,44 @@ std::string ScoreMatrix::to_str() const {
     return oss.str();
 }
 
-
 void ScoreMatrix::traceback() const {
-    std::vector<char> longest_sequence;
-    m_local_alignment = "";
     int row = m_max_position.first;
     int col = m_max_position.second;
 
-    const char gap = '-';
+    std::string x1, x2, a;
 
-    for(;;){
-        if (row <= 0 || col <=0)
-        {
-            break;
-        }
-
+    while( row >=0 && col >=0 && m_matrix[row][col] > 0) {
         const int current_score = m_matrix[row][col];
-
-        if (current_score <= 0 )
-        {
-            break;
-        }
-
-        const bool matching_chars = m_sequence2[row-1] == m_sequence1[col - 1];
-
-        if (matching_chars)
-        {
-            longest_sequence.push_back(m_sequence1[col - 1]);
-        }
-        else
-        {
-            longest_sequence.push_back(gap);
-        }
-
-
         const int diagonal_row = row - 1;
         const int diagonal_col = col - 1;
 
-        if (m_matrix[diagonal_row][diagonal_col] + m_match_score == current_score)
-        {
+        if (m_matrix[diagonal_row][diagonal_col] + m_match_score == current_score) {
+            a = '*' + a;
+            x1 = m_sequence1[col - 1] + x1;
+            x2 = m_sequence2[row - 1] + x2;
             row = diagonal_row;
             col = diagonal_col;
-            continue;
-        }
-        else if (m_matrix[diagonal_row][diagonal_col] + m_mismatch_penalty == current_score)
-        {
+        } else if (m_matrix[diagonal_row][diagonal_col] + m_mismatch_penalty == current_score) {
+            a = '|' + a;
+            x1 = m_sequence1[col - 1] + x1;
+            x2 = m_sequence2[row - 1] + x2;
             row = diagonal_row;
             col = diagonal_col;
-            continue;
-        }
-        else if (m_matrix[row - 1][col] + m_gap_penalty == current_score)
-        {
+        } else if (m_matrix[row - 1][col] + m_gap_penalty == current_score) {
+            a = ' ' + a;
+            x2= m_sequence1[row - 1] + x2;
+            x1 = '_' + x1;
             row -= 1;
-            continue;
-        }
-        else if (m_matrix[row][col - 1] + m_gap_penalty == current_score)
-        {
+        } else if (m_matrix[row][col - 1] + m_gap_penalty == current_score) {
+            a = ' ' + a;
+            x1 = m_sequence1[col - 1] + x1;
+            x2 = '_' + x2;
             col -= 1;
-            continue;
+        } else {
+            assert(false && "Traceback logic error");
         }
-
-        assert(false && "Traceback logic error");
     }
 
-    std::reverse(longest_sequence.begin(), longest_sequence.end());
-    m_local_alignment = std::string(longest_sequence.begin(), longest_sequence.end());
+    m_local_alignment =  "\n"  + x1 + "\n" + a + "\n" + x2 + "\n";
 }
 
