@@ -155,6 +155,9 @@ void ScoreMatrix::traceback() const {
     std::string x1, x2, a;
 
     while( row >=0 && col >=0 && m_matrix[row][col] > 0) {
+        const int row_coming_in = row;
+        const int col_coming_in = col;
+
         const int current_score = m_matrix[row][col];
         const int diagonal_row = row - 1;
         const int diagonal_col = col - 1;
@@ -184,7 +187,9 @@ void ScoreMatrix::traceback() const {
         } else {
             assert(false && "Traceback logic error");
         }
+        assert (row < row_coming_in || col < col_coming_in);
     }
+
 
     m_local_alignment =  "\n"  + x1 + "\n" + a + "\n" + x2 + "\n";
 }
