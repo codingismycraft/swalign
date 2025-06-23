@@ -50,9 +50,30 @@ void testScoreMatrix(){
     std::cout << "Local Alignment:" << scoreMatrix.getLocalAlignment() << std::endl;
 }
 
+void test2(){
+    const std::string s1 = "TCTCGAT";
+    const std::string s2 = "GTCTAC";
+
+    ScoreMatrix scoreMatrix(s1, s2, 2, -1, -1);
+    const std::string expected_str = scoreMatrix.to_str();
+    std::cout << expected_str << std::endl;
+    std::cout << "Local Alignment:" << scoreMatrix.getLocalAlignment() << std::endl;
+}
+
+void test3(){
+    const std::string s1 = "AG";
+    const std::string s2 = "ATTTTG";
+
+    ScoreMatrix scoreMatrix(s1, s2, 2, -1, -1);
+    const std::string expected_str = scoreMatrix.to_str();
+    std::cout << expected_str << std::endl;
+    std::cout << "Local Alignment:" << scoreMatrix.getLocalAlignment() << std::endl;
+}
+
 
 int main(){
-    testScoreMatrix();
+    //testScoreMatrix();
+    test2();
 }
 
 

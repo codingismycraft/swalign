@@ -9,8 +9,8 @@
 class ScoreMatrix {
 
 private:
-    const std::string m_sequence1;
-    const std::string m_sequence2;
+    mutable std::string m_sequence1;
+    mutable std::string m_sequence2;
     const int m_match_score;
     const int m_mismatch_penalty;
     const int m_gap_penalty;

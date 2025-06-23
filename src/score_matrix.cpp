@@ -20,6 +20,11 @@ ScoreMatrix::ScoreMatrix( const std::string& s1, const std::string& s2,
             m_gap_penalty(gap_penalty)
 
 {
+    if (m_sequence2.length() > m_sequence1.length()) {
+        m_sequence1 = s2;
+        m_sequence2 = s1;
+    }
+
     initializeMatrix();
 }
 
@@ -80,7 +85,7 @@ void ScoreMatrix::initializeMatrix() const{
 
             const int score = std::max({score_diagonal, score_up, score_left, 0});
 
-            if (score > max_score) {
+            if (score >= max_score) {
                 max_score = score;
                 m_max_position.first = i;
                 m_max_position.second = j;
@@ -166,6 +171,8 @@ void ScoreMatrix::traceback() const {
     int row = m_max_position.first;
     int col = m_max_position.second;
 
+    const char gap = '-';
+
     for(;;){
         if (row <= 0 || col <=0)
         {
@@ -179,37 +186,53 @@ void ScoreMatrix::traceback() const {
             break;
         }
 
-        if (m_sequence1[row-1] == m_sequence2[col - 1])
+        const bool matching_chars = m_sequence2[row-1] == m_sequence1[col - 1];
+
+        if (matching_chars)
         {
-           longest_sequence.push_back(m_sequence1[row-1]);
+            longest_sequence.push_back(m_sequence1[col - 1]);
         }
         else
         {
-           longest_sequence.push_back('*');
+            longest_sequence.push_back(gap);
         }
 
-        if (current_score - m_matrix[row-1][col-1] == 2)
+        // There are three ways to come to this cell:
+        // 1. From the diagonal (match or mismatch)
+        // 2. From the left (gap in sequence 1)
+        // 3. From above (gap in sequence 2)
+        //
+
+        const int diagonal_row = row - 1;
+        const int diagonal_col = col - 1;
+
+        if (matching_chars && m_matrix[diagonal_row][diagonal_col] + m_match_score == current_score)
         {
-            row -= 1;
-            col -= 1;
+            row = diagonal_row;
+            col = diagonal_col;
+            continue;
         }
-        else if (current_score - m_matrix[row-1][col-1] == -1)
+        else if (matching_chars && m_matrix[diagonal_row][diagonal_col] + m_mismatch_penalty == current_score)
         {
-            row -= 1;
-            col -= 1;
+            row = diagonal_row;
+            col = diagonal_col;
+            continue;
         }
-        else if (current_score - m_matrix[row-1][col] == -2)
+        else if (m_matrix[row - 1][col] + m_gap_penalty == current_score)
         {
+            // Came from above (gap in sequence 2)
             row -= 1;
+            continue;
         }
-        else if (current_score - m_matrix[row][col-1] == -2)
+        else if (m_matrix[row][col - 1] + m_gap_penalty == current_score)
         {
+            // Came from the left (gap in sequence 1)
             col -= 1;
+            continue;
         }
         else
         {
-            assert (current_score == 0);
-            break;
+            assert(false && "Traceback logic error");
         }
     }
 
