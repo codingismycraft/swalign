@@ -23,7 +23,13 @@ private:
 public:
     ScoreMatrix(const std::string& s1, const std::string& s2,
             int match_score, int mismatch_penalty, int gap_penalty);
-    virtual ~ScoreMatrix() = default;
+    ~ScoreMatrix() = default;
+
+    // Disable copy and move operations
+    ScoreMatrix(const ScoreMatrix&) = delete;            // Copy constructor
+    ScoreMatrix& operator=(const ScoreMatrix&) = delete; // Copy assignment
+    ScoreMatrix(ScoreMatrix&&) = delete;                 // Move constructor
+    ScoreMatrix& operator=(ScoreMatrix&&) = delete;      // Move assignment
 
     std::string getSequence1() const;
     std::string getSequence2() const;
