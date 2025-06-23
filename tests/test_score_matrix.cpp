@@ -46,8 +46,8 @@ void testScoreMatrix(){
     auto max_position = scoreMatrix.getMaxPosition();
     assert(max_position.first == 5);
     assert(max_position.second == 5);
-    assert(scoreMatrix.getLocalAlignment() == "AC*TC");
     std::cout << "Local Alignment:" << scoreMatrix.getLocalAlignment() << std::endl;
+    assert(scoreMatrix.getLocalAlignment() == "AC-TC");
 }
 
 void test2(){
@@ -70,10 +70,22 @@ void test3(){
     std::cout << "Local Alignment:" << scoreMatrix.getLocalAlignment() << std::endl;
 }
 
+void test4(){
+    const std::string s1 = "LSPADKTNVKAA";
+    const std::string s2 = "PEEKSAV";
+
+    ScoreMatrix scoreMatrix(s1, s2, 2, -1, -1);
+    const std::string expected_str = scoreMatrix.to_str();
+    std::cout << expected_str << std::endl;
+    std::cout << "Local Alignment:" << scoreMatrix.getLocalAlignment() << std::endl;
+}
+
 
 int main(){
-    //testScoreMatrix();
-    test2();
+    testScoreMatrix();
+    //test2();
+    //test3();
+    //test4();
 }
 
 

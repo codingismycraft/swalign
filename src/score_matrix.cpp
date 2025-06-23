@@ -227,13 +227,13 @@ void ScoreMatrix::traceback() const {
         const int diagonal_row = row - 1;
         const int diagonal_col = col - 1;
 
-        if (matching_chars && m_matrix[diagonal_row][diagonal_col] + m_match_score == current_score)
+        if (m_matrix[diagonal_row][diagonal_col] + m_match_score == current_score)
         {
             row = diagonal_row;
             col = diagonal_col;
             continue;
         }
-        else if (matching_chars && m_matrix[diagonal_row][diagonal_col] + m_mismatch_penalty == current_score)
+        else if (m_matrix[diagonal_row][diagonal_col] + m_mismatch_penalty == current_score)
         {
             row = diagonal_row;
             col = diagonal_col;
