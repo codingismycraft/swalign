@@ -71,8 +71,8 @@ void test3(){
 }
 
 void test4(){
-    const std::string s1 = "GATTACA";
-    const std::string s2 = "GCATGCU";
+    const std::string s1 = "GATTACAGATTACA";
+    const std::string s2 = "GCATGCUAAAC";
 
     ScoreMatrix scoreMatrix(s1, s2, 2, -1, -1);
     const std::string expected_str = scoreMatrix.to_str();
