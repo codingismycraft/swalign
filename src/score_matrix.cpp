@@ -218,11 +218,6 @@ void ScoreMatrix::traceback() const {
             longest_sequence.push_back(gap);
         }
 
-        // There are three ways to come to this cell:
-        // 1. From the diagonal (match or mismatch)
-        // 2. From the left (gap in sequence 1)
-        // 3. From above (gap in sequence 2)
-        //
 
         const int diagonal_row = row - 1;
         const int diagonal_col = col - 1;
@@ -241,20 +236,16 @@ void ScoreMatrix::traceback() const {
         }
         else if (m_matrix[row - 1][col] + m_gap_penalty == current_score)
         {
-            // Came from above (gap in sequence 2)
             row -= 1;
             continue;
         }
         else if (m_matrix[row][col - 1] + m_gap_penalty == current_score)
         {
-            // Came from the left (gap in sequence 1)
             col -= 1;
             continue;
         }
-        else
-        {
-            assert(false && "Traceback logic error");
-        }
+
+        assert(false && "Traceback logic error");
     }
 
     std::reverse(longest_sequence.begin(), longest_sequence.end());
