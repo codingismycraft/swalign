@@ -20,11 +20,6 @@ ScoreMatrix::ScoreMatrix( const std::string& s1, const std::string& s2,
             m_gap_penalty(gap_penalty)
 
 {
-    if (m_sequence2.length() > m_sequence1.length()) {
-        m_sequence1 = s2;
-        m_sequence2 = s1;
-    }
-
     initializeMatrix();
 }
 

@@ -9,8 +9,9 @@ BIN_DIR = ./bin
 # Source and test files
 SRC = $(SRC_DIR)/score_matrix.cpp
 TEST = $(TEST_DIR)/test_score_matrix.cpp
+HEADERS = headers/score_matrix.h
 
-$(BIN_DIR)/test: $(SRC) $(TEST)
+$(BIN_DIR)/test: $(HEADERS)  $(SRC) $(TEST)
 	@mkdir -p $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) $(SRC) $(TEST) -o $(BIN_DIR)/test
 
