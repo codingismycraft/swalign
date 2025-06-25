@@ -90,7 +90,7 @@ void ScoreMatrix::initializeMatrix() const{
         m_matrix.push_back(row);
     }
 
-    traceback();
+    traceback(m_max_position.first, m_max_position.second, "", "", "");
 }
 
 std::pair<int, int> ScoreMatrix::getMaxPosition() const {
@@ -143,12 +143,7 @@ std::string ScoreMatrix::to_str() const {
     return oss.str();
 }
 
-void ScoreMatrix::traceback() const {
-    int row = m_max_position.first;
-    int col = m_max_position.second;
-
-    std::string x1, x2, a;
-
+void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, std::string a) const {
     while( row >=0 && col >=0 && m_matrix[row][col] > 0) {
         const int row_coming_in = row;
         const int col_coming_in = col;
@@ -156,6 +151,7 @@ void ScoreMatrix::traceback() const {
         const int current_score = m_matrix[row][col];
         const int diagonal_row = row - 1;
         const int diagonal_col = col - 1;
+
 
         if (m_matrix[diagonal_row][diagonal_col] + m_match_score == current_score) {
             a = '*' + a;

@@ -19,7 +19,7 @@ private:
     mutable std::vector<std::string> m_local_alignments;
 
     void initializeMatrix() const;
-    void traceback() const;
+    void traceback(int row, int col, std::string x1, std::string x2, std::string a) const;
 public:
     ScoreMatrix(const std::string& s1, const std::string& s2,
             int match_score, int mismatch_penalty, int gap_penalty);
