@@ -148,6 +148,10 @@ void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, st
         const int row_coming_in = row;
         const int col_coming_in = col;
 
+        const std::string a_coming_in = a;
+        const std::string x1_coming_in = x1;
+        const std::string x2_coming_in = x2;
+
         const int current_score = m_matrix[row][col];
         const int diagonal_row = row - 1;
         const int diagonal_col = col - 1;
@@ -161,33 +165,54 @@ void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, st
 
         if (valid_diagonal && m_matrix[diagonal_row][diagonal_col] + m_match_score == current_score) {
             if (!already_moved) {
-                a = '*' + a;
-                x1 = m_sequence1[col_coming_in - 1] + x1;
-                x2 = m_sequence2[row_coming_in  - 1] + x2;
+                a = '*' + a_coming_in;
+                x1 = m_sequence1[col_coming_in - 1] + x1_coming_in;
+                x2 = m_sequence2[row_coming_in  - 1] + x2_coming_in;
                 row = diagonal_row;
                 col = diagonal_col;
                 already_moved = true;
+            }
+            else {
+                assert (false && "Traceback logic error: already_moved should not be true here");
             }
         }
 
         if (valid_diagonal && m_matrix[diagonal_row][diagonal_col] + m_mismatch_penalty == current_score) {
             if (!already_moved) {
-                a = '|' + a;
-                x1 = m_sequence1[col_coming_in - 1] + x1;
-                x2 = m_sequence2[row_coming_in  - 1] + x2;
+                a = '|' + a_coming_in;
+                x1 = m_sequence1[col_coming_in - 1] + x1_coming_in;
+                x2 = m_sequence2[row_coming_in  - 1] + x2_coming_in;
                 row = diagonal_row;
                 col = diagonal_col;
                 already_moved = true;
+            }
+            else {
+                traceback(
+                    diagonal_row,
+                    diagonal_col,
+                    m_sequence1[col_coming_in - 1] + x1_coming_in,
+                    m_sequence2[row_coming_in  - 1] + x2_coming_in,
+                    '|' + a_coming_in
+               );
             }
         }
 
         if (valid_left_row && m_matrix[row_coming_in  - 1][col_coming_in ] + m_gap_penalty == current_score) {
             if (!already_moved) {
                 a = ' ' + a;
-                x2= m_sequence2[row_coming_in  - 1] + x2;
                 x1 = '_' + x1;
+                x2= m_sequence2[row_coming_in  - 1] + x2;
                 row -= 1;
                 already_moved = true;
+            }
+            else {
+                traceback(
+                    row_coming_in  - 1,
+                    col_coming_in,
+                    '_' + x1_coming_in,
+                    m_sequence2[row_coming_in  - 1] + x2_coming_in,
+                    ' ' + a_coming_in
+               );
             }
         }
 
@@ -198,6 +223,15 @@ void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, st
                 x2 = '_' + x2;
                 col  -= 1;
                 already_moved = true;
+            }
+            else {
+                traceback(
+                    row_coming_in,
+                    col_coming_in  - 1,
+                    m_sequence1[col_coming_in - 1] + x1_coming_in,
+                    '_' + x2_coming_in,
+                    ' ' + a_coming_in
+               );
             }
         }
 
