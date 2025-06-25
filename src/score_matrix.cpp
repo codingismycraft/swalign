@@ -171,7 +171,7 @@ void ScoreMatrix::traceback() const {
             col = diagonal_col;
         } else if (m_matrix[row - 1][col] + m_gap_penalty == current_score) {
             a = ' ' + a;
-            x2= m_sequence1[row - 1] + x2;
+            x2= m_sequence2[row - 1] + x2;
             x1 = '_' + x1;
             row -= 1;
         } else if (m_matrix[row][col - 1] + m_gap_penalty == current_score) {
@@ -186,6 +186,6 @@ void ScoreMatrix::traceback() const {
     }
 
 
-    m_local_alignment =  "\n"  + x1 + "\n" + a + "\n" + x2 + "\n";
+    m_local_alignment =  "\n"  + x2 + "\n" + a + "\n" + x1 + "\n";
 }
 
