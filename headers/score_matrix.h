@@ -14,6 +14,8 @@ private:
     const int m_match_score;
     const int m_mismatch_penalty;
     const int m_gap_penalty;
+
+    mutable std::vector<std::pair<int, int>> m_max_positions;
     mutable std::pair<int, int> m_max_position;
     mutable std::vector<std::vector<int>> m_matrix;
     mutable std::vector<std::string> m_local_alignments;

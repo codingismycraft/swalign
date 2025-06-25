@@ -52,6 +52,7 @@ int ScoreMatrix::getScore(int row, int col) const {
 
 void ScoreMatrix::initializeMatrix() const{
     m_local_alignments.clear();
+    m_max_positions.clear();
     m_matrix.push_back(std::vector<int>(getColCount(), 0));
 
     m_max_position.first = 0;
@@ -79,10 +80,17 @@ void ScoreMatrix::initializeMatrix() const{
             const int score_left = row[j - 1] + m_gap_penalty;
             const int score = std::max({score_diagonal, score_up, score_left, 0});
 
+            if (score > max_score) {
+                m_max_positions.clear(); // Clear previous max positions if we
+            }
+
+
             if (score >= max_score) {
                 max_score = score;
                 m_max_position.first = i;
                 m_max_position.second = j;
+
+                m_max_positions.push_back(std::make_pair(i, j));
             }
 
             row.push_back(score);
@@ -90,7 +98,9 @@ void ScoreMatrix::initializeMatrix() const{
         m_matrix.push_back(row);
     }
 
-    traceback(m_max_position.first, m_max_position.second, "", "", "");
+    for (const auto& pos : m_max_positions) {
+        traceback(pos.first, pos.second, "", "", "");
+    }
 }
 
 std::pair<int, int> ScoreMatrix::getMaxPosition() const {
