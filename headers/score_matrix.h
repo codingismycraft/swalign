@@ -16,7 +16,7 @@ private:
     const int m_gap_penalty;
     mutable std::pair<int, int> m_max_position;
     mutable std::vector<std::vector<int>> m_matrix;
-    mutable std::string m_local_alignment;
+    mutable std::vector<std::string> m_local_alignments;
 
     void initializeMatrix() const;
     void traceback() const;
@@ -34,7 +34,7 @@ public:
     std::string getSequence1() const;
     std::string getSequence2() const;
     std::pair<int, int> getMaxPosition() const;
-    std::string getLocalAlignment() const;
+    std::vector<std::string> getLocalAlignment() const;
     int getRowCount() const;
     int getColCount() const;
     int getScore(int row, int col) const;

@@ -23,11 +23,10 @@ ScoreMatrix::ScoreMatrix( const std::string& s1, const std::string& s2,
     initializeMatrix();
 }
 
-std::string ScoreMatrix::getLocalAlignment() const
+std::vector<std::string> ScoreMatrix::getLocalAlignment() const
 {
-    return m_local_alignment;
+    return m_local_alignments;
 }
-
 
 std::string ScoreMatrix::getSequence1() const {
     return m_sequence1;
@@ -52,6 +51,7 @@ int ScoreMatrix::getScore(int row, int col) const {
 
 
 void ScoreMatrix::initializeMatrix() const{
+    m_local_alignments.clear();
     m_matrix.push_back(std::vector<int>(getColCount(), 0));
 
     m_max_position.first = 0;
@@ -185,7 +185,6 @@ void ScoreMatrix::traceback() const {
         assert (row < row_coming_in || col < col_coming_in);
     }
 
-
-    m_local_alignment =  "\n"  + x2 + "\n" + a + "\n" + x1 + "\n";
+    m_local_alignments.push_back("\n"  + x2 + "\n" + a + "\n" + x1 + "\n");
 }
 

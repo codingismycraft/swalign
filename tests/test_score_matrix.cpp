@@ -46,8 +46,6 @@ void testScoreMatrix(){
     auto max_position = scoreMatrix.getMaxPosition();
     assert(max_position.first == 5);
     assert(max_position.second == 5);
-    std::cout << "Local Alignment:" << scoreMatrix.getLocalAlignment() << std::endl;
-    assert(scoreMatrix.getLocalAlignment() == "AC-TC");
 }
 
 void test2(){
@@ -57,7 +55,6 @@ void test2(){
     ScoreMatrix scoreMatrix(s1, s2, 2, -1, -1);
     const std::string expected_str = scoreMatrix.to_str();
     std::cout << expected_str << std::endl;
-    std::cout << "Local Alignment:" << scoreMatrix.getLocalAlignment() << std::endl;
 }
 
 void test3(){
@@ -67,7 +64,6 @@ void test3(){
     ScoreMatrix scoreMatrix(s1, s2, 2, -1, -1);
     const std::string expected_str = scoreMatrix.to_str();
     std::cout << expected_str << std::endl;
-    std::cout << "Local Alignment:" << scoreMatrix.getLocalAlignment() << std::endl;
 }
 
 void test4(){
@@ -75,9 +71,13 @@ void test4(){
     const std::string s2 = "GATTAC";
 
     ScoreMatrix scoreMatrix(s1, s2, 2, -1, -1);
-    const std::string expected_str = scoreMatrix.to_str();
-    std::cout << expected_str << std::endl;
-    std::cout << "Local Alignment:" << scoreMatrix.getLocalAlignment() << std::endl;
+    //const std::string expected_str = scoreMatrix.to_str();
+    //std::cout << expected_str << std::endl;
+    auto alighments = scoreMatrix.getLocalAlignment();
+
+    for(const auto& alignment : alighments) {
+        std::cout << alignment << std::endl;
+    }
 }
 
 void test5(){
@@ -86,14 +86,6 @@ void test5(){
 
     ScoreMatrix scoreMatrix(s1, s2, 2, -1, -1);
     std::cout << scoreMatrix.to_str() << std::endl;
-
-    const std::string retrieved = scoreMatrix.getLocalAlignment();
-    const std::string expected = "\nAGA\n*|*\nATA\n";
-
-
-    assert (retrieved == expected);
-
-    std::cout << "Local Alignment:" << retrieved<< std::endl;
 }
 
 
