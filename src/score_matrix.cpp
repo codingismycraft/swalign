@@ -144,7 +144,7 @@ std::string ScoreMatrix::to_str() const {
 }
 
 void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, std::string a) const {
-    while( row >=0 && col >=0 && m_matrix[row][col] > 0) {
+    while(row >=0 && col >=0 && m_matrix[row][col] > 0) {
         const int row_coming_in = row;
         const int col_coming_in = col;
 
@@ -152,33 +152,57 @@ void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, st
         const int diagonal_row = row - 1;
         const int diagonal_col = col - 1;
 
+        const bool valid_diagonal = (diagonal_row >= 0 && diagonal_col >= 0);
+        const bool valid_up_col = (col - 1 >= 0);
+        const bool valid_left_row = (row - 1 >= 0);
 
-        if (m_matrix[diagonal_row][diagonal_col] + m_match_score == current_score) {
-            a = '*' + a;
-            x1 = m_sequence1[col - 1] + x1;
-            x2 = m_sequence2[row - 1] + x2;
-            row = diagonal_row;
-            col = diagonal_col;
-        } else if (m_matrix[diagonal_row][diagonal_col] + m_mismatch_penalty == current_score) {
-            a = '|' + a;
-            x1 = m_sequence1[col - 1] + x1;
-            x2 = m_sequence2[row - 1] + x2;
-            row = diagonal_row;
-            col = diagonal_col;
-        } else if (m_matrix[row - 1][col] + m_gap_penalty == current_score) {
-            a = ' ' + a;
-            x2= m_sequence2[row - 1] + x2;
-            x1 = '_' + x1;
-            row -= 1;
-        } else if (m_matrix[row][col - 1] + m_gap_penalty == current_score) {
-            a = ' ' + a;
-            x1 = m_sequence1[col - 1] + x1;
-            x2 = '_' + x2;
-            col -= 1;
-        } else {
-            assert(false && "Traceback logic error");
+        bool already_moved = false;
+
+
+        if (valid_diagonal && m_matrix[diagonal_row][diagonal_col] + m_match_score == current_score) {
+            if (!already_moved) {
+                a = '*' + a;
+                x1 = m_sequence1[col_coming_in - 1] + x1;
+                x2 = m_sequence2[row_coming_in  - 1] + x2;
+                row = diagonal_row;
+                col = diagonal_col;
+                already_moved = true;
+            }
         }
-        assert (row < row_coming_in || col < col_coming_in);
+
+        if (valid_diagonal && m_matrix[diagonal_row][diagonal_col] + m_mismatch_penalty == current_score) {
+            if (!already_moved) {
+                a = '|' + a;
+                x1 = m_sequence1[col_coming_in - 1] + x1;
+                x2 = m_sequence2[row_coming_in  - 1] + x2;
+                row = diagonal_row;
+                col = diagonal_col;
+                already_moved = true;
+            }
+        }
+
+        if (valid_left_row && m_matrix[row_coming_in  - 1][col_coming_in ] + m_gap_penalty == current_score) {
+            if (!already_moved) {
+                a = ' ' + a;
+                x2= m_sequence2[row_coming_in  - 1] + x2;
+                x1 = '_' + x1;
+                row -= 1;
+                already_moved = true;
+            }
+        }
+
+        if (valid_up_col && m_matrix[row_coming_in ][col_coming_in  - 1] + m_gap_penalty == current_score) {
+            if (!already_moved) {
+                a = ' ' + a;
+                x1 = m_sequence1[col - 1] + x1;
+                x2 = '_' + x2;
+                col  -= 1;
+                already_moved = true;
+            }
+        }
+
+       assert(already_moved && "Traceback logic error");
+       assert (row < row_coming_in || col < col_coming_in);
     }
 
     m_local_alignments.push_back("\n"  + x2 + "\n" + a + "\n" + x1 + "\n");
