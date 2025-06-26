@@ -7,19 +7,19 @@
 # Makefile for building swalign and its tests in both debug and release modes.
 #
 # Usage Examples:
-#   # Build swalign in debug mode (default)
+#   Build swalign in debug mode (default)
 #   make swalign
 #
-#   # Build swalign in release mode
+#   Build swalign in release mode
 #   make swalign BUILD=release
 #
-#   # Build and run tests in debug mode (default)
+#   Build and run tests in debug mode (default)
 #   make test
 #
-#   # Build and run tests in release mode
+#   Build and run tests in release mode
 #   make test BUILD=release
 #
-#   # Clean all binaries
+#   Clean all binaries
 #   make clean
 #
 ###############################################################################
