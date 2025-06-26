@@ -22,9 +22,14 @@
 
 #include "score_matrix.h"
 
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+#include "rapidjson/document.h"
+
 #include <algorithm>
 #include <assert.h>
 #include <iomanip>
+#include <numeric> // for std::accumulate
 #include <sstream>
 #include <string>
 #include <vector>
@@ -43,9 +48,12 @@ ScoreMatrix::ScoreMatrix( const std::string& s1, const std::string& s2,
     initializeMatrix();
 }
 
-std::vector<std::string> ScoreMatrix::getLocalAlignments() const
+std::string ScoreMatrix::getLocalAlignments() const
 {
-    return m_local_alignments;
+    const std::string alignments = std::accumulate(
+            m_local_alignments.begin(), m_local_alignments.end(), std::string()
+    );
+    return ScoreMatrix::getAlignmentsAsJson(alignments);
 }
 
 std::string ScoreMatrix::getSequence1() const {
@@ -261,3 +269,39 @@ void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, st
     m_local_alignments.push_back("\n"  + x2 + "\n" + a + "\n" + x1 + "\n");
 }
 
+
+// Assumes input is groups of 3 non-empty lines separated by empty lines
+std::string ScoreMatrix::getAlignmentsAsJson(const std::string& input) {
+    std::istringstream ss(input);
+    std::string line;
+    std::vector<std::tuple<std::string, std::string, std::string>> entries;
+
+    while (std::getline(ss, line)) {
+        // skip empty lines
+        if (line.empty())
+            continue;
+        std::string seq1 = line;
+        std::string match, seq2;
+        if (!std::getline(ss, match)) break;
+        if (!std::getline(ss, seq2)) break;
+        entries.emplace_back(seq1, match, seq2);
+    }
+
+    rapidjson::Document d;
+    d.SetArray();
+    auto& allocator = d.GetAllocator();
+
+    for (const auto& entry : entries) {
+        rapidjson::Value obj(rapidjson::kObjectType);
+        obj.AddMember("seq1", rapidjson::Value(std::get<0>(entry).c_str(), allocator), allocator);
+        obj.AddMember("match", rapidjson::Value(std::get<1>(entry).c_str(), allocator), allocator);
+        obj.AddMember("seq2", rapidjson::Value(std::get<2>(entry).c_str(), allocator), allocator);
+        d.PushBack(obj, allocator);
+    }
+
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    d.Accept(writer);
+
+    return buffer.GetString();
+}

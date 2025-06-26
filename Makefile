@@ -40,11 +40,11 @@ BIN_DIR_DEBUG = ./bin/debug
 BIN_DIR_RELEASE = ./bin/release
 
 ifeq ($(BUILD),release)
-    CXXFLAGS = -std=c++20 -Wall -O3 -DNDEBUG -Iheaders/
+    CXXFLAGS = -std=c++20 -Wall -O3 -DNDEBUG -Iheaders/ -I${RAPIDJSON_HOME}
     BIN_DIR = $(BIN_DIR_RELEASE)
     BIN_SUFFIX =
 else
-    CXXFLAGS = -std=c++20 -Wall -g -Iheaders/
+    CXXFLAGS = -std=c++20 -Wall -g -Iheaders/ -Iheaders/ -I${RAPIDJSON_HOME}
     BIN_DIR = $(BIN_DIR_DEBUG)
     BIN_SUFFIX = _debug
 endif
