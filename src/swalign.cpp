@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
 
     // Create ScoreMatrix instance and compute local alignments
     ScoreMatrix score_matrix(seq1, seq2, match_score, mismatch_penalty, gap_penalty);
-    auto alignments = score_matrix.getLocalAlignment();
+    auto alignments = score_matrix.getLocalAlignments();
 
     // Output the result(s)
     if (alignments.empty()) {

@@ -62,7 +62,7 @@ public:
 
     std::string getSequence1() const;
     std::string getSequence2() const;
-    std::vector<std::string> getLocalAlignment() const;
+    std::vector<std::string> getLocalAlignments() const;
     int getRowCount() const;
     int getColCount() const;
     int getScore(int row, int col) const;

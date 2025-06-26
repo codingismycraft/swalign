@@ -91,7 +91,7 @@ void test4(){
     const std::string s2 = "GATTAC";
 
     ScoreMatrix scoreMatrix(s1, s2, 2, -1, -1);
-    auto alighments = scoreMatrix.getLocalAlignment();
+    auto alighments = scoreMatrix.getLocalAlignments();
 
     for(const auto& alignment : alighments) {
         std::cout << alignment << std::endl;

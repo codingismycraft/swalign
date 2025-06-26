@@ -43,7 +43,7 @@ ScoreMatrix::ScoreMatrix( const std::string& s1, const std::string& s2,
     initializeMatrix();
 }
 
-std::vector<std::string> ScoreMatrix::getLocalAlignment() const
+std::vector<std::string> ScoreMatrix::getLocalAlignments() const
 {
     return m_local_alignments;
 }
