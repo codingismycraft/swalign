@@ -1,3 +1,26 @@
+/*
+ ******************************************************************************
+ *
+ *  test_score_matrix.cpp
+ *
+ *  Copyright (c) 2025 John Pazarzis
+ *  Licensed under the GPL License.
+ *
+ *  This file contains unit and demonstration tests for the ScoreMatrix class,
+ *  which implements the Smith-Waterman local alignment algorithm.
+ *
+ *  Each test checks different aspects such as:
+ *    - Matrix initialization and scoring
+ *    - Correctness of alignment matrix values
+ *    - Retrieval of local alignments
+ *    - Handling of various input sequences and scoring parameters
+ *
+ *  To use: build and run the test binary. Uncomment or add tests in main()
+ *  as needed to exercise more features or validate additional cases.
+ *
+ ******************************************************************************
+ */
+
 #include "score_matrix.h"
 
 #include <iostream>
@@ -71,8 +94,6 @@ void test4(){
     const std::string s2 = "GATTAC";
 
     ScoreMatrix scoreMatrix(s1, s2, 2, -1, -1);
-    //const std::string expected_str = scoreMatrix.to_str();
-    //std::cout << expected_str << std::endl;
     auto alighments = scoreMatrix.getLocalAlignment();
 
     for(const auto& alignment : alighments) {

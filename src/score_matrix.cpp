@@ -1,4 +1,24 @@
-// Implementation of ScoreMatrix class and related details.
+/*
+ ******************************************************************************
+ *
+ *  score_matrix.cpp
+ *
+ *  Copyright (c) 2025 John Pazarzis
+ *  Licensed under the GPL License.
+ *
+ *  This file implements the ScoreMatrix class, which provides the core logic
+ *  for the Smith-Waterman local alignment algorithm. This includes:
+ *    - Initializing and filling the dynamic programming matrix
+ *    - Performing traceback to reconstruct all optimal local alignments
+ *    - Accessor methods for sequences, matrix scores, and alignments
+ *    - Generating a string representation of the alignment matrix
+ *
+ *  The ScoreMatrix class is intended to be used as part of the swalign
+ *  program for efficient and robust local sequence alignment of nucleotide
+ *  or protein sequences.
+ *
+ ******************************************************************************
+ */
 
 #include "score_matrix.h"
 
