@@ -37,12 +37,14 @@
 
 // Implementation of ScoreMatrix class.
 ScoreMatrix::ScoreMatrix( const std::string& s1, const std::string& s2,
-        int match_score, int mismatch_penalty, int gap_penalty):
+        int match_score, int mismatch_penalty, int gap_penalty, size_t max_alignments):
             m_sequence1(s1),
             m_sequence2(s2),
             m_match_score(match_score),
             m_mismatch_penalty(mismatch_penalty),
-            m_gap_penalty(gap_penalty)
+            m_gap_penalty(gap_penalty),
+            m_max_alignments(max_alignments),
+            m_max_score(0)
 
 {
     initializeMatrix();
@@ -77,6 +79,13 @@ int ScoreMatrix::getScore(int row, int col) const {
     return m_matrix[row][col];
 }
 
+size_t ScoreMatrix::getNumberOfAlignments() const {
+    return m_local_alignments.size();
+}
+
+int ScoreMatrix::getMaxScore() const {
+    return m_max_score;
+}
 
 void ScoreMatrix::initializeMatrix() const{
     m_local_alignments.clear();
@@ -118,6 +127,8 @@ void ScoreMatrix::initializeMatrix() const{
         }
         m_matrix.push_back(row);
     }
+
+    m_max_score = max_score;
 
     for (const auto& pos : m_max_positions) {
         traceback(pos.first, pos.second, "", "", "");
@@ -171,7 +182,13 @@ std::string ScoreMatrix::to_str() const {
 }
 
 void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, std::string a) const {
+
     while(row >=0 && col >=0 && m_matrix[row][col] > 0) {
+        if (m_local_alignments.size() >= m_max_alignments)
+        {
+            return;
+        }
+
         const int row_coming_in = row;
         const int col_coming_in = col;
 
@@ -214,13 +231,15 @@ void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, st
                 already_moved = true;
             }
             else {
-                traceback(
-                    diagonal_row,
-                    diagonal_col,
-                    m_sequence1[col_coming_in - 1] + x1_coming_in,
-                    m_sequence2[row_coming_in  - 1] + x2_coming_in,
-                    '|' + a_coming_in
-               );
+                if (m_local_alignments.size() < m_max_alignments) {
+                    traceback(
+                        diagonal_row,
+                        diagonal_col,
+                        m_sequence1[col_coming_in - 1] + x1_coming_in,
+                        m_sequence2[row_coming_in  - 1] + x2_coming_in,
+                        '|' + a_coming_in
+                   );
+               }
             }
         }
 
@@ -233,13 +252,15 @@ void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, st
                 already_moved = true;
             }
             else {
-                traceback(
-                    row_coming_in  - 1,
-                    col_coming_in,
-                    '_' + x1_coming_in,
-                    m_sequence2[row_coming_in  - 1] + x2_coming_in,
-                    ' ' + a_coming_in
-               );
+                if (m_local_alignments.size() < m_max_alignments) {
+                    traceback(
+                        row_coming_in  - 1,
+                        col_coming_in,
+                        '_' + x1_coming_in,
+                        m_sequence2[row_coming_in  - 1] + x2_coming_in,
+                        ' ' + a_coming_in
+                   );
+                }
             }
         }
 
@@ -252,13 +273,15 @@ void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, st
                 already_moved = true;
             }
             else {
-                traceback(
-                    row_coming_in,
-                    col_coming_in  - 1,
-                    m_sequence1[col_coming_in - 1] + x1_coming_in,
-                    '_' + x2_coming_in,
-                    ' ' + a_coming_in
-               );
+                if (m_local_alignments.size() < m_max_alignments) {
+                    traceback(
+                        row_coming_in,
+                        col_coming_in  - 1,
+                        m_sequence1[col_coming_in - 1] + x1_coming_in,
+                        '_' + x2_coming_in,
+                        ' ' + a_coming_in
+                   );
+                }
             }
         }
 

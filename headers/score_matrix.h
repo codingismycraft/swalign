@@ -42,7 +42,9 @@ private:
     const int m_match_score;
     const int m_mismatch_penalty;
     const int m_gap_penalty;
+    const size_t m_max_alignments;
 
+    mutable int m_max_score;
     mutable std::vector<std::pair<int, int>> m_max_positions;
     mutable std::vector<std::vector<int>> m_matrix;
     mutable std::vector<std::string> m_local_alignments;
@@ -53,7 +55,7 @@ private:
     static std::string getAlignmentsAsJson(const std::string& input);
 public:
     ScoreMatrix(const std::string& s1, const std::string& s2,
-            int match_score, int mismatch_penalty, int gap_penalty);
+            int match_score, int mismatch_penalty, int gap_penalty, size_t max_alignments = 10);
     ~ScoreMatrix() = default;
 
     // Disable copy and move operations
@@ -65,9 +67,11 @@ public:
     std::string getSequence1() const;
     std::string getSequence2() const;
     std::string getLocalAlignments() const;
+    size_t getNumberOfAlignments() const ;
     int getRowCount() const;
     int getColCount() const;
     int getScore(int row, int col) const;
+    int getMaxScore() const;
     std::string to_str() const;
 };
 

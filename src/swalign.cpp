@@ -157,18 +157,15 @@ int main(int argc, char* argv[]) {
     std::string seq2 = read_sequence_from_file(seq2_file);
 
     // Create ScoreMatrix instance and compute local alignments
-    ScoreMatrix score_matrix(seq1, seq2, match_score, mismatch_penalty, gap_penalty);
-    auto alignments = score_matrix.getLocalAlignments();
+    ScoreMatrix scoreMatrix(seq1, seq2, match_score, mismatch_penalty, gap_penalty, 120000 );
 
-    // Output the result(s)
-    if (alignments.empty()) {
-        std::cout << "No local alignments found.\n";
-    } else {
-        std::cout << "Highest scoring local alignment(s):\n";
-        for (const auto& alignment : alignments) {
-            std::cout << alignment << std::endl;
-        }
-    }
+    const auto alignments = scoreMatrix.getLocalAlignments();
+
+    //std::cout << alignments << std::endl;
+    std::cout << "Size of the JSON string: " << alignments.size()<< std::endl;
+    std::cout << "Number of Alignments ..: " << scoreMatrix.getNumberOfAlignments()<< std::endl;
+    std::cout << "Max score .............: " << scoreMatrix.getMaxScore()<< std::endl;
+
 
     return 0;
 }
