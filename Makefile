@@ -1,5 +1,8 @@
 ###############################################################################
-# swalign - Smith-Waterman Local Alignment Tool
+#
+# Copyright (c) 2025 John Pazarzis
+#
+# Licensed under the GPL License.
 #
 # Makefile for building swalign and its tests in both debug and release modes.
 #
@@ -25,7 +28,6 @@
 CXX = g++
 SRC_DIR = ./src
 TEST_DIR = ./tests
-BIN_DIR = ./bin
 HEADERS = headers/score_matrix.h
 SRC = $(SRC_DIR)/score_matrix.cpp
 TEST = $(TEST_DIR)/test_score_matrix.cpp
@@ -33,15 +35,17 @@ TEST = $(TEST_DIR)/test_score_matrix.cpp
 # Default build is debug
 BUILD ?= debug
 
-# Flags for debug and release
-CXXFLAGS_DEBUG = -std=c++20 -Wall -g -Iheaders/
-CXXFLAGS_RELEASE = -std=c++20 -Wall -O3 -DNDEBUG -Iheaders/
+# Output directories for debug and release
+BIN_DIR_DEBUG = ./bin/debug
+BIN_DIR_RELEASE = ./bin/release
 
 ifeq ($(BUILD),release)
-    CXXFLAGS = $(CXXFLAGS_RELEASE)
+    CXXFLAGS = -std=c++20 -Wall -O3 -DNDEBUG -Iheaders/
+    BIN_DIR = $(BIN_DIR_RELEASE)
     BIN_SUFFIX =
 else
-    CXXFLAGS = $(CXXFLAGS_DEBUG)
+    CXXFLAGS = -std=c++20 -Wall -g -Iheaders/
+    BIN_DIR = $(BIN_DIR_DEBUG)
     BIN_SUFFIX = _debug
 endif
 
@@ -73,4 +77,4 @@ swalign$(BIN_SUFFIX): $(BIN_DIR)/swalign$(BIN_SUFFIX)
 swalign: swalign$(BIN_SUFFIX)
 
 clean:
-	rm -f $(BIN_DIR)/*
+	rm -rf $(BIN_DIR_DEBUG) $(BIN_DIR_RELEASE)
