@@ -18,9 +18,9 @@ $(BIN_DIR)/test: $(HEADERS)  $(SRC) $(TEST)
 test: $(BIN_DIR)/test
 	$(BIN_DIR)/test
 
-main: $(HEADERS)  $(SRC) $(SRC_DIR)/main.cpp
+swalign: $(HEADERS)  $(SRC) $(SRC_DIR)/swalign.cpp
 	@mkdir -p $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) $(SRC) $(SRC_DIR)/main.cpp -o $(BIN_DIR)/main
+	$(CXX) $(CXXFLAGS) $(SRC) $(SRC_DIR)/swalign.cpp -o $(BIN_DIR)/swalign
 
 
 clean:
