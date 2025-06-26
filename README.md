@@ -27,15 +27,6 @@ Add the following line to your `.bashrc` or `.zshrc`
 export RAPIDJSON_HOME=<your-repos-directory>/rapidjson/include
 ```
 
-## Test
-
-From the swalign directory, run the following command to execute the unit tests:
-
-```sh
-
-make test
-```
-
 ## Building swalign
 
 The project uses a `Makefile` to support both **debug** and **release** builds. Binaries are placed in `bin/debug/` and `bin/release/` respectively.
