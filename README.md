@@ -1,66 +1,107 @@
-# Local Align
+# swalign
 
-A C++ implementation of the Smith-Waterman algorithm for local sequence
-alignment.
+**Smith-Waterman Local Alignment Tool**
 
-# Traceback algorithm
+![License: GPL](https://img.shields.io/badge/License-GPL-blue.svg)
 
-- Start from the cell with the highest score and trace back to the cell with a
-score of 0.
+## Overview
 
-- Keep track of the current row, col.
+**swalign** is a robust C++ command-line tool for computing optimal local alignments between two biological (or arbitrary) sequences using the [Smith-Waterman algorithm](https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm). It is designed for researchers, students, and developers who need fast, reliable, and customizable local sequence alignment.
 
-- Create two new strings (x1, x2) each of them will contain the aligned
-  sequences for the two input sequences.
+## Features
 
-  x1 => the horizontal
-  x2 => the vertical
+- **Local alignment** using the Smith-Waterman algorithm
+- Customizable match score, mismatch penalty, and gap penalty
+- Detailed output of the scoring matrix and all optimal local alignments
+- Easy-to-read command-line interface
+- Well-tested with unit and demonstration tests
 
-- Create a new string called alignment (a) that will contain the aligned
-  sequences as a set of the following characters:
-  j
-  * (match)
-  | mismatch
-  ' ' (gap).
+## Usage
 
-- Move the current row and column according to the following rules:
+```sh
+swalign <seq1_file> <seq2_file> [options]
+```
 
-  - If the current cell is the result of a match, move to the upper left cell
-    (diagonal move).
-  - If the current cell is the result of a mismatch, move to the upper left cell
-    (diagonal move).
-  - If the current cell is the result of a gap in the up sequence, move to the
-    left cell.
-  - If the current cell is the result of a gap in the left sequence, move to
-    the upper cell.
+### Arguments
 
-- if the score of the current cell is 0, stop the traceback.
+- `<seq1_file>`: File containing the first sequence (required)
+- `<seq2_file>`: File containing the second sequence (required)
 
-There are the following possible moves:
+### Options
 
-### Move 1: Matching char
--  The current cell is the result of a match (diagonal move)
+- `-m <int>`: Match score (default: 2)
+- `-x <int>`: Mismatch penalty (default: -1)
+- `-g <int>`: Gap penalty (default: -1)
+- `-h, --help`: Print help message and exit
 
-in this case append the current (matching) character to the "begining" of each
-of x1 and x2, and move to the cell in the upper left corner.
+### Notes
 
-append the * to the alignment string (a)
+- All score and penalty values must be integers between -10 and 10.
+- Input files must exist and be readable.
 
-### Move 2: Mismatching char
-- The current cell is the result of a mismatch (diagonal move). Add the
-  corresponding characters to the "begining" of each of x1 and x2, and move to
-  the cell in the upper left corner.
+### Example
 
-append the | to the alignment string (a)
+```sh
+./swalign seq1.txt seq2.txt -m 2 -x -1 -g -1
+```
 
-### Move 3: Gap in the up sequence
+## Building swalign
 
-Add a space to the begining of the alignment string (a)
-Add an underscore to the begining of x2
-Add the character from the horizontal sequence to the begining of x1.
+The project uses a `Makefile` to support both **debug** and **release** builds. Binaries are placed in `bin/debug/` and `bin/release/` respectively.
 
-### Move 4: Gap in the left sequence
+### Build swalign (debug mode, default)
 
-Add a space to the begining of the alignment string (a)
-Add an underscore to the begining of x1
-Add the character from the horizontal sequence to the begining of x2.
+```sh
+make swalign
+# Binary: bin/debug/swalign_debug
+```
+
+### Build swalign (release mode)
+
+```sh
+make swalign BUILD=release
+# Binary: bin/release/swalign
+```
+
+### Build and run tests (debug mode)
+
+```sh
+make test
+# Runs: bin/debug/test_debug
+```
+
+### Build and run tests (release mode)
+
+```sh
+make test BUILD=release
+# Runs: bin/release/test
+```
+
+### Clean all build artifacts
+
+```sh
+make clean
+```
+
+## Project Structure
+
+```
+.
+├── bin/           # Compiled binaries (debug and release)
+├── headers/       # C++ header files
+│   └── score_matrix.h
+├── src/           # Source files
+│   ├── score_matrix.cpp
+│   └── swalign.cpp
+├── tests/         # Unit and demonstration test files
+│   └── test_score_matrix.cpp
+├── Makefile
+└── README.md
+```
+
+## License
+
+This project is licensed under the [GPL License](LICENSE).
+
+---
+
