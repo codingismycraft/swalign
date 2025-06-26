@@ -66,9 +66,6 @@ void testScoreMatrix(){
         }
     }
 
-    auto max_position = scoreMatrix.getMaxPosition();
-    assert(max_position.first == 5);
-    assert(max_position.second == 5);
 }
 
 void test2(){
