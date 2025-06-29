@@ -35,6 +35,11 @@
 #include <vector>
 
 
+static inline int _flat_index(const int row, const int col, const int col_count) {
+    return row * col_count + col;
+}
+
+
 // Implementation of ScoreMatrix class.
 ScoreMatrix::ScoreMatrix( const std::string& s1, const std::string& s2,
         int match_score, int mismatch_penalty, int gap_penalty, size_t max_alignments):
@@ -47,7 +52,15 @@ ScoreMatrix::ScoreMatrix( const std::string& s1, const std::string& s2,
             m_max_score(0)
 
 {
+    m_new_matrix = new int[(s1.length() + 1) * (s2.length() + 1)];
     initializeMatrix();
+}
+
+ScoreMatrix::~ScoreMatrix() {
+    if (m_new_matrix) {
+        delete[] m_new_matrix;
+        m_new_matrix = nullptr;
+    }
 }
 
 
@@ -131,6 +144,53 @@ void ScoreMatrix::initializeMatrix() const{
         traceback(pos.first, pos.second, "", "", "");
     }
 }
+
+std::string ScoreMatrix::to_str_new() const {
+    std::ostringstream oss;
+    const int width = 6;
+    if (m_matrix.empty()) return "";
+
+    // Build horizontal separator
+    std::string separator;
+    // The separator needs to cover one extra for the row label column.
+    for (int col = 0; col < getColCount() + 1; ++col) {
+        separator += std::string(width, '_');
+        if (col + 1 < getColCount() + 1) separator += "|";
+    }
+    separator += "\n";
+
+    // Print top separator
+    oss << separator;
+
+    // Print header row: empty cell, then m_sequence1 characters as column headers
+    oss << std::setw(width) << ' ';
+
+    oss << "|" << std::setw(width) << ' ';
+    for (int col = 0; col < getColCount()-1; ++col) {
+        oss << "|" << std::setw(width) << m_sequence1[col];
+    }
+    // The number of columns for the sequence is m_sequence1.size(), which matches m_matrix[0].size()-1,
+    // so we need one more empty cell at the end to match the bottom rows.
+    oss << "\n" << separator;
+
+    // Print all matrix rows
+    for (int row = 0; row < getRowCount(); ++row) {
+        // First column: empty for first row, else m_sequence2 character
+        if (row == 0) {
+            oss << std::setw(width) << ' ';
+        } else {
+            oss << std::setw(width) << m_sequence2[row - 1];
+        }
+        // Print all matrix columns for this row
+        for (int col = 0; col < getRowCount(); ++col) {
+            oss << "|" << std::setw(width) << m_new_matrix[_flat_index(row, col, getColCount())];
+        }
+        oss << "\n" << separator;
+    }
+
+    return oss.str();
+}
+
 
 std::string ScoreMatrix::to_str() const {
     std::ostringstream oss;

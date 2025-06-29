@@ -49,13 +49,15 @@ private:
     mutable std::vector<std::vector<int>> m_matrix;
     mutable std::vector<std::string> m_local_alignments;
 
+    int* m_new_matrix;
+
     void initializeMatrix() const;
     void traceback(int row, int col, std::string x1, std::string x2, std::string a) const;
 
 public:
     ScoreMatrix(const std::string& s1, const std::string& s2,
             int match_score, int mismatch_penalty, int gap_penalty, size_t max_alignments = 10);
-    ~ScoreMatrix() = default;
+    ~ScoreMatrix();
 
     // Disable copy and move operations
     ScoreMatrix(const ScoreMatrix&) = delete;
@@ -76,6 +78,7 @@ public:
     int getScore(int row, int col) const;
     int getMaxScore() const;
     std::string to_str() const;
+    std::string to_str_new() const;
 };
 
 std::ostream& operator<<(std::ostream& os, const ScoreMatrix& obj);
