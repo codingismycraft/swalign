@@ -35,8 +35,8 @@
 #include <vector>
 
 
-static inline int _flat_index(const int row, const int col, const int col_count) {
-    return row * col_count + col;
+static inline int _get_value(const int row, const int col, const int col_count, const int* matrix) {
+    return matrix[row * col_count + col];
 }
 
 
@@ -183,7 +183,7 @@ std::string ScoreMatrix::to_str_new() const {
         }
         // Print all matrix columns for this row
         for (int col = 0; col < getRowCount(); ++col) {
-            oss << "|" << std::setw(width) << m_new_matrix[_flat_index(row, col, getColCount())];
+            oss << "|" << std::setw(width) << m_new_matrix[_get_value(row, col, getColCount(), m_new_matrix)];
         }
         oss << "\n" << separator;
     }
