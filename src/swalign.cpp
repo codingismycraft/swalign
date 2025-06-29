@@ -159,13 +159,7 @@ int main(int argc, char* argv[]) {
     // Create ScoreMatrix instance and compute local alignments
     ScoreMatrix scoreMatrix(seq1, seq2, match_score, mismatch_penalty, gap_penalty, 120000 );
 
-    const auto alignments = scoreMatrix.getLocalAlignments();
-
-    //std::cout << alignments << std::endl;
-    std::cout << "Size of the JSON string: " << alignments.size()<< std::endl;
-    std::cout << "Number of Alignments ..: " << scoreMatrix.getNumberOfAlignments()<< std::endl;
-    std::cout << "Max score .............: " << scoreMatrix.getMaxScore()<< std::endl;
-
+    std::cout << scoreMatrix << std::endl;
 
     return 0;
 }

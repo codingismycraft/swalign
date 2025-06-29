@@ -29,7 +29,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <iomanip>
-#include <numeric> // for std::accumulate
+#include <numeric>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -50,12 +50,9 @@ ScoreMatrix::ScoreMatrix( const std::string& s1, const std::string& s2,
     initializeMatrix();
 }
 
-std::string ScoreMatrix::getLocalAlignments() const
-{
-    const std::string alignments = std::accumulate(
-            m_local_alignments.begin(), m_local_alignments.end(), std::string()
-    );
-    return ScoreMatrix::getAlignmentsAsJson(alignments);
+
+const std::vector<std::string>& ScoreMatrix::getLocalAlignments() const {
+    return m_local_alignments;
 }
 
 std::string ScoreMatrix::getSequence1() const {
@@ -294,7 +291,12 @@ void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, st
 
 
 // Assumes input is groups of 3 non-empty lines separated by empty lines
-std::string ScoreMatrix::getAlignmentsAsJson(const std::string& input) {
+std::string ScoreMatrix::getLocalAlignmentsAsJson() const {
+
+    const std::string input = std::accumulate(
+            m_local_alignments.begin(), m_local_alignments.end(), std::string()
+    );
+
     std::istringstream ss(input);
     std::string line;
     std::vector<std::tuple<std::string, std::string, std::string>> entries;
@@ -328,3 +330,22 @@ std::string ScoreMatrix::getAlignmentsAsJson(const std::string& input) {
 
     return buffer.GetString();
 }
+
+std::ostream& operator<<(std::ostream& os, const ScoreMatrix& obj) {
+    os << "\n***************************************" << std::endl;
+    os << "Seq1: " << obj.getSequence1() << std::endl;
+    os << "Seq2: " << obj.getSequence1() << std::endl;
+
+    os << "\nNumber of Alignments ..: " << obj.getNumberOfAlignments()<< std::endl;
+    os << "Max score .............: " << obj.getMaxScore()<< std::endl;
+
+    int counter = 1;
+    os << "\n--------------------------" << std::endl;
+    for (const auto& aln : obj.getLocalAlignments()) {
+         os << "Alignment num: " << counter++ << "\n";
+         os << aln << std::endl;
+         os << "--------------------------" << std::endl;
+    }
+    return os;
+}
+

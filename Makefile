@@ -28,53 +28,58 @@
 CXX = g++
 SRC_DIR = ./src
 TEST_DIR = ./tests
-HEADERS = headers/score_matrix.h
-SRC = $(SRC_DIR)/score_matrix.cpp
-TEST = $(TEST_DIR)/test_score_matrix.cpp
+HEADERS =  -Iheaders -I${RAPIDJSON_HOME}
 
 # Default build is debug
 BUILD ?= debug
 
-# Output directories for debug and release
-BIN_DIR_DEBUG = ./bin/debug
-BIN_DIR_RELEASE = ./bin/release
+
+.PHONY: all clean debug release test_score_matrix test_utils swalign
+
 
 ifeq ($(BUILD),release)
-    CXXFLAGS = -std=c++20 -Wall -O3 -DNDEBUG -Iheaders/ -I${RAPIDJSON_HOME}
-    BIN_DIR = $(BIN_DIR_RELEASE)
-    BIN_SUFFIX =
+    CXXFLAGS = -std=c++20 -Wall -O3 -DNDEBUG ${HEADERS}
+    BIN_DIR = ./bin/release
+    OBJDIR = ./obj/release
 else
-    CXXFLAGS = -std=c++20 -Wall -g -Iheaders/ -Iheaders/ -I${RAPIDJSON_HOME}
-    BIN_DIR = $(BIN_DIR_DEBUG)
-    BIN_SUFFIX = _debug
+    CXXFLAGS = -std=c++20 -Wall -g ${HEADERS}
+    BIN_DIR = ./bin/debug
+    OBJDIR = ./obj/debug
 endif
 
-.PHONY: all debug release test clean
-
-all: swalign$(BIN_SUFFIX) test$(BIN_SUFFIX)
-
-debug:
-	$(MAKE) all BUILD=debug
-
-release:
-	$(MAKE) all BUILD=release
-
-$(BIN_DIR)/test$(BIN_SUFFIX): $(HEADERS) $(SRC) $(TEST)
-	@mkdir -p $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) $(SRC) $(TEST) -o $(BIN_DIR)/test$(BIN_SUFFIX)
-
-test$(BIN_SUFFIX): $(BIN_DIR)/test$(BIN_SUFFIX)
-	$(BIN_DIR)/test$(BIN_SUFFIX)
-
-test: test$(BIN_SUFFIX)
-
-$(BIN_DIR)/swalign$(BIN_SUFFIX): $(HEADERS) $(SRC) $(SRC_DIR)/swalign.cpp
-	@mkdir -p $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) $(SRC) $(SRC_DIR)/swalign.cpp -o $(BIN_DIR)/swalign$(BIN_SUFFIX)
-
-swalign$(BIN_SUFFIX): $(BIN_DIR)/swalign$(BIN_SUFFIX)
-
-swalign: swalign$(BIN_SUFFIX)
 
 clean:
-	rm -rf $(BIN_DIR_DEBUG) $(BIN_DIR_RELEASE)
+	echo $(OBJDIR)
+	rm -rf $(OBJDIR)
+	rm -rf $(BIN_DIR)
+
+
+$(OBJDIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(OBJDIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+
+$(BIN_DIR)/test_score_matrix: ./headers/score_matrix.h $(OBJDIR)/score_matrix.o $(TEST_DIR)/test_score_matrix.cpp
+	@mkdir -p $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJDIR)/score_matrix.o $(TEST_DIR)/test_score_matrix.cpp
+
+
+test_score_matrix: $(BIN_DIR)/test_score_matrix
+	$(BIN_DIR)/test_score_matrix
+
+
+$(BIN_DIR)/test_utils: ./headers/utils.h $(OBJDIR)/utils.o $(TEST_DIR)/test_utils.cpp
+	@mkdir -p $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJDIR)/utils.o $(TEST_DIR)/test_utils.cpp
+
+
+test_utils: $(BIN_DIR)/test_utils
+	$(BIN_DIR)/test_utils
+
+
+$(BIN_DIR)/swalign: ./headers/score_matrix.h $(OBJDIR)/score_matrix.o $(OBJDIR)/utils.o $(OBJDIR)/swalign.o
+	@mkdir -p $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(BIN_DIR)/swalign $(OBJDIR)/score_matrix.o $(OBJDIR)/utils.o $(OBJDIR)/swalign.o
+
+
+swalign: $(BIN_DIR)/swalign

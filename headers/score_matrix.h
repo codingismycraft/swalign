@@ -32,7 +32,7 @@
 #include <string>
 #include <utility>
 #include <vector>
-
+#include <ostream>
 
 class ScoreMatrix {
 
@@ -52,7 +52,6 @@ private:
     void initializeMatrix() const;
     void traceback(int row, int col, std::string x1, std::string x2, std::string a) const;
 
-    static std::string getAlignmentsAsJson(const std::string& input);
 public:
     ScoreMatrix(const std::string& s1, const std::string& s2,
             int match_score, int mismatch_penalty, int gap_penalty, size_t max_alignments = 10);
@@ -66,8 +65,12 @@ public:
 
     std::string getSequence1() const;
     std::string getSequence2() const;
-    std::string getLocalAlignments() const;
+
+    const std::vector<std::string>& getLocalAlignments() const;
+
+    std::string getLocalAlignmentsAsJson() const;
     size_t getNumberOfAlignments() const ;
+
     int getRowCount() const;
     int getColCount() const;
     int getScore(int row, int col) const;
@@ -75,5 +78,6 @@ public:
     std::string to_str() const;
 };
 
+std::ostream& operator<<(std::ostream& os, const ScoreMatrix& obj);
 
 #endif // __SCORE_MATRIX_H__
