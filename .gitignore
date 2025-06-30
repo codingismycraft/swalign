@@ -1,6 +1,9 @@
 # Prerequisites
 *.d
 
+# Ignore ctags file
+tags
+
 # Compiled Object files
 *.slo
 *.lo

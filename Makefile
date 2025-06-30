@@ -82,3 +82,6 @@ $(BIN_DIR)/swalign: ./headers/score_matrix.h $(OBJDIR)/score_matrix.o $(OBJDIR)/
 
 
 swalign: $(BIN_DIR)/swalign
+
+tags:
+	ctags -R -f tags .  ${RAPIDJSON_HOME}
