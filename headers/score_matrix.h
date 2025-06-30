@@ -48,6 +48,7 @@ public:
     ScoreMatrix(ScoreMatrix&&) = delete;
     ScoreMatrix& operator=(ScoreMatrix&&) = delete;
 
+    // Accessors.
     const std::string& getSequence1() const;
     const std::string& getSequence2() const;
     int getRowCount() const;
@@ -55,7 +56,6 @@ public:
     int getScore(int row, int col) const; // throws std::out_of_range.
     int getMaxScore() const;
     std::string toString() const;
-
     const std::vector<std::string>& getLocalAlignments() const;
     std::string getLocalAlignmentsAsJson() const;
     size_t getNumberOfAlignments() const;
