@@ -37,6 +37,7 @@
 class ScoreMatrix {
 
 private:
+    // Passed from the user.
     const std::string m_sequence1;
     const std::string m_sequence2;
     const int m_match_score;
@@ -44,13 +45,18 @@ private:
     const int m_gap_penalty;
     const size_t m_max_alignments;
 
+    // Keep internal state.
     std::vector<std::pair<int, int>> m_max_positions;
     std::vector<std::string> m_local_alignments;
-
     int m_max_score;
+
+    // m_matrix is a flat matrix allocated as a contiguous memory block
+    // for compatibility with CUDA device memory transfers.
+    // Do NOT use std::vector or smart pointers here.
     int* m_matrix;
 
 private:
+    // Private functions.
     void initializeMatrix();
     void traceback(int row, int col, std::string x1, std::string x2, std::string a);
     void processDiagonal(int col, int starting_row);
@@ -61,6 +67,7 @@ public:
     ~ScoreMatrix();
 
     // Disable copy and move operations
+    ScoreMatrix() = delete;
     ScoreMatrix(const ScoreMatrix&) = delete;
     ScoreMatrix& operator=(const ScoreMatrix&) = delete;
     ScoreMatrix(ScoreMatrix&&) = delete;
@@ -70,13 +77,13 @@ public:
     std::string getSequence2() const;
     int getRowCount() const;
     int getColCount() const;
-    int getScore(int row, int col) const;
+    int getScore(int row, int col) const; // throws std::out_of_range.
     int getMaxScore() const;
     std::string toString() const;
 
     const std::vector<std::string>& getLocalAlignments() const;
     std::string getLocalAlignmentsAsJson() const;
-    size_t getNumberOfAlignments() const ;
+    size_t getNumberOfAlignments() const;
 };
 
 std::ostream& operator<<(std::ostream& os, const ScoreMatrix& obj);

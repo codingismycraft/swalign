@@ -93,6 +93,9 @@ int ScoreMatrix::getColCount() const {
 }
 
 int ScoreMatrix::getScore(int row, int col) const {
+    if (row < 0 || row >= getRowCount() || col < 0 || col >= getColCount()) {
+        throw std::out_of_range("Row or column index out of bounds");
+    }
     return getMatrixValue(row, col, getColCount(), m_matrix);
 }
 
