@@ -49,8 +49,7 @@ endif
 
 
 clean:
-	echo $(OBJDIR)
-	rm -rf $(OBJDIR)
+	rm -rf ./obj
 	rm -rf ./bin
 
 
