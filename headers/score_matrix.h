@@ -26,8 +26,8 @@
  ******************************************************************************
  */
 
-#ifndef __SCORE_MATRIX_H__
-#define __SCORE_MATRIX_H__
+#ifndef SCORE_MATRIX_INCLUDED
+#define SCORE_MATRIX_INCLUDED
 
 #include <string>
 #include <utility>
@@ -79,9 +79,8 @@ public:
     int getScore(int row, int col) const;
     int getMaxScore() const;
     std::string to_str() const;
-    std::string to_str_new() const;
 };
 
 std::ostream& operator<<(std::ostream& os, const ScoreMatrix& obj);
 
-#endif // __SCORE_MATRIX_H__
+#endif // SCORE_MATRIX_INCLUDED
