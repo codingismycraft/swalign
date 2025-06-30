@@ -29,10 +29,11 @@
 #ifndef SCORE_MATRIX_INCLUDED
 #define SCORE_MATRIX_INCLUDED
 
+#include <ostream>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
-#include <ostream>
 
 class ScoreMatrix {
 
