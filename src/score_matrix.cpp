@@ -40,6 +40,10 @@ static inline int _get_value(const int row, const int col, const int col_count, 
 }
 
 
+static inline void _set_value(const int value, const int row, const int col, const int col_count, int* matrix) {
+    matrix[row * col_count + col] = value;
+}
+
 // Implementation of ScoreMatrix class.
 ScoreMatrix::ScoreMatrix( const std::string& s1, const std::string& s2,
         int match_score, int mismatch_penalty, int gap_penalty, size_t max_alignments):
@@ -86,7 +90,7 @@ int ScoreMatrix::getColCount() const {
 }
 
 int ScoreMatrix::getScore(int row, int col) const {
-    return m_matrix[row][col];
+    return _get_value(row, col, getColCount(), m_new_matrix);
 }
 
 size_t ScoreMatrix::getNumberOfAlignments() const {
@@ -97,58 +101,59 @@ int ScoreMatrix::getMaxScore() const {
     return m_max_score;
 }
 
-void ScoreMatrix::initializeMatrix() const{
+void ScoreMatrix::initializeMatrix() {
     m_local_alignments.clear();
     m_max_positions.clear();
-    m_matrix.push_back(std::vector<int>(getColCount(), 0));
+    m_max_score = 0;
 
-    int max_score = 0;
-
-    for (int i = 1; i < getRowCount(); ++i) {
-        std::vector<int> row;
-        row.push_back(0);
-        for(int j = 1; j < getColCount(); ++j) {
-            int score_diagonal = 0;
-
-            if (m_sequence1[j - 1] == m_sequence2[i - 1])
-            {
-                score_diagonal = m_matrix[i - 1][j - 1] + m_match_score;
-            }
-            else
-            {
-                score_diagonal = m_matrix[i - 1][j - 1] + m_mismatch_penalty;
-            }
-
-
-            const int score_up = m_matrix[i - 1][j] + m_gap_penalty;
-            const int score_left = row[j - 1] + m_gap_penalty;
-            const int score = std::max({score_diagonal, score_up, score_left, 0});
-
-            if (score > max_score) {
-                m_max_positions.clear(); // Clear previous max positions if we
-            }
-
-            if (score >= max_score) {
-                max_score = score;
-                m_max_positions.push_back(std::make_pair(i, j));
-            }
-
-            row.push_back(score);
-        }
-        m_matrix.push_back(row);
+    for(int col = 1; col < getColCount(); ++col) {
+        _process_diagonal(col, 1);
     }
 
-    m_max_score = max_score;
+    const int last_col = getColCount() - 1;
 
-    for (const auto& pos : m_max_positions) {
+    for (int row = 1; row < getRowCount(); ++row) {
+        _process_diagonal(last_col, row);
+    }
+
+     for (const auto& pos : m_max_positions) {
         traceback(pos.first, pos.second, "", "", "");
     }
 }
 
-std::string ScoreMatrix::to_str_new() const {
+void ScoreMatrix::_process_diagonal(int col, int starting_row){
+    assert (col >= 0 && col < getColCount() && "Column index out of bounds");
+    for (int row = starting_row; col > 0 && row < getRowCount(); ++row) {
+
+        const int& diagonal_value = _get_value(row-1, col-1, getColCount(), m_new_matrix);
+        const int& up_value = _get_value(row - 1, col, getColCount(), m_new_matrix);
+        const int& left_value = _get_value(row, col - 1, getColCount(), m_new_matrix);
+
+        const int score_diagonal = diagonal_value + (m_sequence1[col - 1] == m_sequence2[row - 1] ? m_match_score : m_mismatch_penalty);
+        const int score_up = up_value + m_gap_penalty;
+        const int score_left = left_value + m_gap_penalty;
+
+        const int score = std::max({score_diagonal, score_up, score_left, 0});
+
+        if (score > m_max_score) {
+            m_max_positions.clear();
+        }
+
+        if (score >= m_max_score) {
+            m_max_score = score;
+            m_max_positions.push_back(std::make_pair(row, col));
+        }
+
+        _set_value(score, row, col, getColCount(), m_new_matrix);
+
+        --col;
+    }
+}
+
+std::string ScoreMatrix::to_str() const {
     std::ostringstream oss;
     const int width = 6;
-    if (m_matrix.empty()) return "";
+    if (m_new_matrix == nullptr) return "";
 
     // Build horizontal separator
     std::string separator;
@@ -169,8 +174,6 @@ std::string ScoreMatrix::to_str_new() const {
     for (int col = 0; col < getColCount()-1; ++col) {
         oss << "|" << std::setw(width) << m_sequence1[col];
     }
-    // The number of columns for the sequence is m_sequence1.size(), which matches m_matrix[0].size()-1,
-    // so we need one more empty cell at the end to match the bottom rows.
     oss << "\n" << separator;
 
     // Print all matrix rows
@@ -183,7 +186,7 @@ std::string ScoreMatrix::to_str_new() const {
         }
         // Print all matrix columns for this row
         for (int col = 0; col < getRowCount(); ++col) {
-            oss << "|" << std::setw(width) << m_new_matrix[_get_value(row, col, getColCount(), m_new_matrix)];
+            oss << "|" << std::setw(width) << _get_value(row, col, getColCount(), m_new_matrix);
         }
         oss << "\n" << separator;
     }
@@ -191,56 +194,9 @@ std::string ScoreMatrix::to_str_new() const {
     return oss.str();
 }
 
+void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, std::string a) {
 
-std::string ScoreMatrix::to_str() const {
-    std::ostringstream oss;
-    const int width = 6;
-    if (m_matrix.empty()) return "";
-
-    // Build horizontal separator
-    std::string separator;
-    // The separator needs to cover one extra for the row label column.
-    for (size_t col = 0; col < m_matrix[0].size() + 1; ++col) {
-        separator += std::string(width, '_');
-        if (col + 1 < m_matrix[0].size() + 1) separator += "|";
-    }
-    separator += "\n";
-
-    // Print top separator
-    oss << separator;
-
-    // Print header row: empty cell, then m_sequence1 characters as column headers
-    oss << std::setw(width) << ' ';
-
-    oss << "|" << std::setw(width) << ' ';
-    for (size_t col = 0; col < m_sequence1.size(); ++col) {
-        oss << "|" << std::setw(width) << m_sequence1[col];
-    }
-    // The number of columns for the sequence is m_sequence1.size(), which matches m_matrix[0].size()-1,
-    // so we need one more empty cell at the end to match the bottom rows.
-    oss << "\n" << separator;
-
-    // Print all matrix rows
-    for (size_t row = 0; row < m_matrix.size(); ++row) {
-        // First column: empty for first row, else m_sequence2 character
-        if (row == 0) {
-            oss << std::setw(width) << ' ';
-        } else {
-            oss << std::setw(width) << m_sequence2[row - 1];
-        }
-        // Print all matrix columns for this row
-        for (size_t col = 0; col < m_matrix[row].size(); ++col) {
-            oss << "|" << std::setw(width) << m_matrix[row][col];
-        }
-        oss << "\n" << separator;
-    }
-
-    return oss.str();
-}
-
-void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, std::string a) const {
-
-    while(row >=0 && col >=0 && m_matrix[row][col] > 0) {
+    while(row >=0 && col >=0 && getScore(row, col) > 0) {
         if (m_local_alignments.size() >= m_max_alignments)
         {
             return;
@@ -253,7 +209,7 @@ void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, st
         const std::string x1_coming_in = x1;
         const std::string x2_coming_in = x2;
 
-        const int current_score = m_matrix[row][col];
+        const int current_score = getScore(row, col);
         const int diagonal_row = row - 1;
         const int diagonal_col = col - 1;
 
@@ -264,7 +220,7 @@ void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, st
         bool already_moved = false;
 
 
-        if (valid_diagonal && m_matrix[diagonal_row][diagonal_col] + m_match_score == current_score) {
+        if (valid_diagonal && getScore(diagonal_row, diagonal_col) + m_match_score == current_score) {
             if (!already_moved) {
                 a = '*' + a_coming_in;
                 x1 = m_sequence1[col_coming_in - 1] + x1_coming_in;
@@ -278,7 +234,7 @@ void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, st
             }
         }
 
-        if (valid_diagonal && m_matrix[diagonal_row][diagonal_col] + m_mismatch_penalty == current_score) {
+        if (valid_diagonal && getScore(diagonal_row, diagonal_col) + m_mismatch_penalty == current_score) {
             if (!already_moved) {
                 a = '|' + a_coming_in;
                 x1 = m_sequence1[col_coming_in - 1] + x1_coming_in;
@@ -300,7 +256,8 @@ void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, st
             }
         }
 
-        if (valid_left_row && m_matrix[row_coming_in  - 1][col_coming_in ] + m_gap_penalty == current_score) {
+
+        if (valid_left_row && getScore(row_coming_in  - 1, col_coming_in) + m_gap_penalty == current_score) {
             if (!already_moved) {
                 a = ' ' + a;
                 x1 = '_' + x1;
@@ -321,7 +278,7 @@ void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, st
             }
         }
 
-        if (valid_up_col && m_matrix[row_coming_in ][col_coming_in  - 1] + m_gap_penalty == current_score) {
+        if (valid_up_col && getScore(row_coming_in, col_coming_in  - 1) + m_gap_penalty == current_score) {
             if (!already_moved) {
                 a = ' ' + a;
                 x1 = m_sequence1[col - 1] + x1;
@@ -394,7 +351,7 @@ std::string ScoreMatrix::getLocalAlignmentsAsJson() const {
 std::ostream& operator<<(std::ostream& os, const ScoreMatrix& obj) {
     os << "\n***************************************" << std::endl;
     os << "Seq1: " << obj.getSequence1() << std::endl;
-    os << "Seq2: " << obj.getSequence1() << std::endl;
+    os << "Seq2: " << obj.getSequence2() << std::endl;
 
     os << "\nNumber of Alignments ..: " << obj.getNumberOfAlignments()<< std::endl;
     os << "Max score .............: " << obj.getMaxScore()<< std::endl;

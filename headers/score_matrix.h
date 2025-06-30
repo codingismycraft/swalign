@@ -44,15 +44,16 @@ private:
     const int m_gap_penalty;
     const size_t m_max_alignments;
 
-    mutable int m_max_score;
-    mutable std::vector<std::pair<int, int>> m_max_positions;
-    mutable std::vector<std::vector<int>> m_matrix;
-    mutable std::vector<std::string> m_local_alignments;
+    int m_max_score;
+    std::vector<std::pair<int, int>> m_max_positions;
+    std::vector<std::string> m_local_alignments;
 
     int* m_new_matrix;
 
-    void initializeMatrix() const;
-    void traceback(int row, int col, std::string x1, std::string x2, std::string a) const;
+    void initializeMatrix();
+    void traceback(int row, int col, std::string x1, std::string x2, std::string a);
+
+    void _process_diagonal(int col, int starting_row);
 
 public:
     ScoreMatrix(const std::string& s1, const std::string& s2,

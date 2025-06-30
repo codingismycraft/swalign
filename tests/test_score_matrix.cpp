@@ -66,9 +66,7 @@ void testScoreMatrix(){
         }
     }
 
-
-    std::cout << std::endl <<scoreMatrix.to_str_new() << std::endl;
-
+    std::cout << scoreMatrix << std::endl;
 }
 
 void test2(){
