@@ -75,11 +75,11 @@ const std::vector<std::string>& ScoreMatrix::getLocalAlignments() const {
     return m_local_alignments;
 }
 
-std::string ScoreMatrix::getSequence1() const {
+const std::string& ScoreMatrix::getSequence1() const {
     return m_sequence1;
 }
 
-std::string ScoreMatrix::getSequence2() const {
+const std::string& ScoreMatrix::getSequence2() const {
     return m_sequence2;
 }
 
