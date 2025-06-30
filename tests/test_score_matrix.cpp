@@ -66,6 +66,7 @@ void testScoreMatrix(){
         }
     }
 
+    std::cout << scoreMatrix << std::endl;
 }
 
 void test2(){
@@ -103,10 +104,10 @@ void test5(){
 
 
 int main(){
-    //testScoreMatrix();
+    testScoreMatrix();
     //test2();
     // test3();
     //test4();
-    test5();
+    //test5();
 }
 

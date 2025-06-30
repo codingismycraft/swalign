@@ -49,9 +49,8 @@ endif
 
 
 clean:
-	echo $(OBJDIR)
-	rm -rf $(OBJDIR)
-	rm -rf $(BIN_DIR)
+	rm -rf ./obj
+	rm -rf ./bin
 
 
 $(OBJDIR)/%.o: $(SRC_DIR)/%.cpp
