@@ -34,15 +34,18 @@
 #include <string>
 #include <vector>
 
+namespace {
 
-static inline int _get_value(const int row, const int col, const int col_count, const int* matrix) {
-    return matrix[row * col_count + col];
+    inline int getMatrixValue(const int row, const int col, const int col_count, const int* matrix) {
+        return matrix[row * col_count + col];
+    }
+
+    inline void setMatrixValue(const int value, const int row, const int col, const int col_count, int* matrix) {
+        matrix[row * col_count + col] = value;
+    }
 }
 
 
-static inline void _set_value(const int value, const int row, const int col, const int col_count, int* matrix) {
-    matrix[row * col_count + col] = value;
-}
 
 // Implementation of ScoreMatrix class.
 ScoreMatrix::ScoreMatrix( const std::string& s1, const std::string& s2,
@@ -90,7 +93,7 @@ int ScoreMatrix::getColCount() const {
 }
 
 int ScoreMatrix::getScore(int row, int col) const {
-    return _get_value(row, col, getColCount(), m_new_matrix);
+    return getMatrixValue(row, col, getColCount(), m_new_matrix);
 }
 
 size_t ScoreMatrix::getNumberOfAlignments() const {
@@ -107,13 +110,13 @@ void ScoreMatrix::initializeMatrix() {
     m_max_score = 0;
 
     for(int col = 1; col < getColCount(); ++col) {
-        _process_diagonal(col, 1);
+        processDiagonal(col, 1);
     }
 
     const int last_col = getColCount() - 1;
 
     for (int row = 1; row < getRowCount(); ++row) {
-        _process_diagonal(last_col, row);
+        processDiagonal(last_col, row);
     }
 
      for (const auto& pos : m_max_positions) {
@@ -121,13 +124,13 @@ void ScoreMatrix::initializeMatrix() {
     }
 }
 
-void ScoreMatrix::_process_diagonal(int col, int starting_row){
+void ScoreMatrix::processDiagonal(int col, int starting_row){
     assert (col >= 0 && col < getColCount() && "Column index out of bounds");
     for (int row = starting_row; col > 0 && row < getRowCount(); ++row) {
 
-        const int& diagonal_value = _get_value(row-1, col-1, getColCount(), m_new_matrix);
-        const int& up_value = _get_value(row - 1, col, getColCount(), m_new_matrix);
-        const int& left_value = _get_value(row, col - 1, getColCount(), m_new_matrix);
+        const int& diagonal_value = getMatrixValue(row-1, col-1, getColCount(), m_new_matrix);
+        const int& up_value = getMatrixValue(row - 1, col, getColCount(), m_new_matrix);
+        const int& left_value = getMatrixValue(row, col - 1, getColCount(), m_new_matrix);
 
         const int score_diagonal = diagonal_value + (m_sequence1[col - 1] == m_sequence2[row - 1] ? m_match_score : m_mismatch_penalty);
         const int score_up = up_value + m_gap_penalty;
@@ -144,7 +147,7 @@ void ScoreMatrix::_process_diagonal(int col, int starting_row){
             m_max_positions.push_back(std::make_pair(row, col));
         }
 
-        _set_value(score, row, col, getColCount(), m_new_matrix);
+        setMatrixValue(score, row, col, getColCount(), m_new_matrix);
 
         --col;
     }
@@ -186,7 +189,7 @@ std::string ScoreMatrix::to_str() const {
         }
         // Print all matrix columns for this row
         for (int col = 0; col < getRowCount(); ++col) {
-            oss << "|" << std::setw(width) << _get_value(row, col, getColCount(), m_new_matrix);
+            oss << "|" << std::setw(width) << getMatrixValue(row, col, getColCount(), m_new_matrix);
         }
         oss << "\n" << separator;
     }
