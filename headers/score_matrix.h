@@ -72,7 +72,7 @@ public:
     int getColCount() const;
     int getScore(int row, int col) const;
     int getMaxScore() const;
-    std::string to_str() const;
+    std::string toString() const;
 
     const std::vector<std::string>& getLocalAlignments() const;
     std::string getLocalAlignmentsAsJson() const;

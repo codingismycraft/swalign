@@ -53,7 +53,7 @@ void testScoreMatrix(){
     assert(scoreMatrix.getRowCount() == expected_row_count);
     assert(scoreMatrix.getColCount() == expected_col_count);
 
-    const std::string expected_str = scoreMatrix.to_str();
+    const std::string expected_str = scoreMatrix.toString();
 
     std::cout << expected_str << std::endl;
 

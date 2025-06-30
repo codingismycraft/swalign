@@ -153,7 +153,7 @@ void ScoreMatrix::processDiagonal(int col, int starting_row){
     }
 }
 
-std::string ScoreMatrix::to_str() const {
+std::string ScoreMatrix::toString() const {
     std::ostringstream oss;
     const int width = 6;
     if (m_new_matrix == nullptr) return "";
