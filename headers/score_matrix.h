@@ -48,7 +48,7 @@ private:
     std::vector<std::string> m_local_alignments;
 
     int m_max_score;
-    int* m_new_matrix;
+    int* m_matrix;
 
 private:
     void initializeMatrix();
