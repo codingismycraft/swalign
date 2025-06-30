@@ -36,31 +36,6 @@
 
 class ScoreMatrix {
 
-private:
-    // Passed from the user.
-    const std::string m_sequence1;
-    const std::string m_sequence2;
-    const int m_match_score;
-    const int m_mismatch_penalty;
-    const int m_gap_penalty;
-    const size_t m_max_alignments;
-
-    // Keep internal state.
-    std::vector<std::pair<int, int>> m_max_positions;
-    std::vector<std::string> m_local_alignments;
-    int m_max_score;
-
-    // m_matrix is a flat matrix allocated as a contiguous memory block
-    // for compatibility with CUDA device memory transfers.
-    // Do NOT use std::vector or smart pointers here.
-    int* m_matrix;
-
-private:
-    // Private functions.
-    void initializeMatrix();
-    void traceback(int row, int col, std::string x1, std::string x2, std::string a);
-    void processDiagonal(int col, int starting_row);
-
 public:
     ScoreMatrix(const std::string& s1, const std::string& s2,
             int match_score, int mismatch_penalty, int gap_penalty, size_t max_alignments = 10);
@@ -84,6 +59,32 @@ public:
     const std::vector<std::string>& getLocalAlignments() const;
     std::string getLocalAlignmentsAsJson() const;
     size_t getNumberOfAlignments() const;
+
+private:
+    // Private functions.
+    void initializeMatrix();
+    void traceback(int row, int col, std::string x1, std::string x2, std::string a);
+    void processDiagonal(int col, int starting_row);
+
+private:
+    // Passed from the user.
+    const std::string m_sequence1;
+    const std::string m_sequence2;
+    const int m_match_score;
+    const int m_mismatch_penalty;
+    const int m_gap_penalty;
+    const size_t m_max_alignments;
+
+    // Keep internal state.
+    std::vector<std::pair<int, int>> m_max_positions;
+    std::vector<std::string> m_local_alignments;
+    int m_max_score;
+
+    // m_matrix is a flat matrix allocated as a contiguous memory block
+    // for compatibility with CUDA device memory transfers.
+    // Do NOT use std::vector or smart pointers here.
+    int* m_matrix;
+
 };
 
 std::ostream& operator<<(std::ostream& os, const ScoreMatrix& obj);
