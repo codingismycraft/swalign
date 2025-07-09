@@ -30,6 +30,8 @@ SRC_DIR = ./src
 TEST_DIR = ./tests
 HEADERS =  -Iheaders -I${RAPIDJSON_HOME}
 
+CUDA_CXX = nvcc
+
 # Default build is debug
 BUILD ?= debug
 
@@ -82,6 +84,15 @@ $(BIN_DIR)/swalign: ./headers/score_matrix.h $(OBJDIR)/score_matrix.o $(OBJDIR)/
 
 
 swalign: $(BIN_DIR)/swalign
+
+$(BIN_DIR)/cuda_sample: $(SRC_DIR)/cuda_sample.cu
+	@mkdir -p $(BIN_DIR)
+	$(CUDA_CXX) -g -G $(SRC_DIR)/cuda_sample.cu -o $(BIN_DIR)/cuda_sample
+
+
+cuda_sample: $(BIN_DIR)/cuda_sample
+	$(BIN_DIR)/cuda_sample
+
 
 tags:
 	ctags -R -f tags .  ${RAPIDJSON_HOME}
