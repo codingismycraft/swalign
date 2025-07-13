@@ -1,74 +1,83 @@
-
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <cuda_runtime.h>
 
-void calc_scores(int** matrix, const char* psz1, const char* psz2){
-    const int rows = strlen(psz1) + 1;
-    const int cols = strlen(psz2) + 1;
-    const int size = rows * cols * sizeof(int);
-    *matrix = (int*)malloc(size);
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            const int index = i * cols + j;
-            (*matrix)[index] = index; // Initialize the matrix to zero
-        }
+
+#define THREADS_PER_BLOCK 256
+
+int get_count_of_cells(int index, int rows, int cols) {
+    const int start_i = (index - (cols - 1) > 0) ? (index - (cols - 1)) : 0;
+    const int end_i = (index < rows - 1) ? index : (rows - 1);
+    const int count = end_i - start_i + 1;
+    return (count > 0) ? count : 0;
+}
+
+
+__global__ void update_cell_in_diagonal(int* matrix, int d, int cols, int cells_count) {
+    const int thread_index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (thread_index < cells_count) {
+       const int row = thread_index + (d >= cols ? (d - cols + 1) : 0);
+       const int col = d - row;
+       const int i = row * cols + col;
+       matrix[i] =  cells_count;
     }
 }
 
-int main_using_cpu(){
+int diagonal_count_cells() {
     const char* psz1 = "hello";
-    const char* psz2 = "helll";
-    int* matrix = NULL;
-    const int rows = strlen(psz1) + 1;
-    const int cols = strlen(psz2) + 1;
-    calc_scores(&matrix, psz1, psz2);
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            printf("%3d ", matrix[i * cols + j]);
-        }
-        printf("\n");
-    }
-    free(matrix);
-    return 0;
-}
+    const char* psz2 = "hellona";
 
-__global__ void calc_scores_gpu(int* matrix,int rows, int cols) {
-    int i = blockIdx.x;
-    if (i < rows * cols) {
-        int row = i / cols;
-        int col = i % cols;
-        matrix[i] = row + col; // Example calculation
-    }
-}
+    const int rows = strlen(psz2);
+    const int cols = strlen(psz1);
 
-
-
-int main_using_gpu() {
-    const char* psz1 = "hello";
-    const char* psz2 = "hellloword";
-    const int rows = strlen(psz1) + 1;
-    const int cols = strlen(psz2) + 1;
     const int size = rows * cols * sizeof(int);
     int* matrix = (int*)malloc(size);
+    if (!matrix) {
+        fprintf(stderr, "Failed to allocate host matrix\n");
+        return 1;
+    }
+    memset(matrix, 0, size);
 
     // Allocate memory on the GPU
     int* d_a;
-    cudaMalloc((void**)&d_a, size);
 
-    // Copy the matrix from CPU to the GPU
-    cudaMemcpy(d_a, matrix, size, cudaMemcpyHostToDevice);
+    if (cudaMalloc((void**)&d_a, size) != cudaSuccess) {
+        fprintf(stderr, "Failed to allocate device matrix\n");
+        free(matrix);
+        return 2;
+    }
 
-    // Call the kernel to perform the calculation
-    //
-    calc_scores_gpu<<<rows * cols, 1>>>(d_a, rows, cols);
+    if (cudaMemcpy(d_a, matrix, size, cudaMemcpyHostToDevice) != cudaSuccess) {
+        fprintf(stderr, "Failed to copy to device\n");
+        cudaFree(d_a);
+        free(matrix);
+        return 3;
+    }
+
+    for (int index = 0; index < cols + rows - 1;  index++) {
+        const int count = get_count_of_cells(index, rows, cols);
+        const int numBlocks = (count + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
+        update_cell_in_diagonal<<<numBlocks, THREADS_PER_BLOCK>>>(d_a, index, cols, count);
+    }
 
     cudaDeviceSynchronize();
 
+     if (cudaMemcpy(matrix, d_a, size, cudaMemcpyDeviceToHost) != cudaSuccess) {
+        fprintf(stderr, "Failed to copy from device\n");
+        cudaFree(d_a);
+        free(matrix);
+        return 4;
+    }
+
     // Copy the matrix from GPU to CPU
-    cudaMemcpy(matrix, d_a, size, cudaMemcpyDeviceToHost);
-    //
+    if (cudaMemcpy(matrix, d_a, size, cudaMemcpyDeviceToHost) != cudaSuccess) {
+        fprintf(stderr, "Failed to copy from device\n");
+        cudaFree(d_a);
+        free(matrix);
+        return 4;
+    }
+
     // Free the GPU memory
     cudaFree(d_a);
 
@@ -86,8 +95,6 @@ int main_using_gpu() {
 }
 
 int main() {
-    return main_using_gpu();
+    //return diagonal_sum();
+    return diagonal_count_cells();
 }
-
-
-

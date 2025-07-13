@@ -36,8 +36,14 @@ CUDA_CXX = nvcc
 BUILD ?= debug
 
 
-.PHONY: all clean debug release test_score_matrix test_utils swalign
+.PHONY: all clean debug release test_score_matrix test_utils swalign help
 
+
+help:  ## Show this help and exit
+	@echo "Available targets:"
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
+		| sort \
+		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
 ifeq ($(BUILD),release)
     CXXFLAGS = -std=c++20 -Wall -O3 -DNDEBUG ${HEADERS}
