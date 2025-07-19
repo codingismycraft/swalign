@@ -3,8 +3,79 @@
 #include <stdlib.h>
 #include <cuda_runtime.h>
 
-
 #define THREADS_PER_BLOCK 256
+
+__device__ __forceinline__ int max_of_three(int a, int b, int c) {
+
+    if (a < 0) {
+        a = 0; // Ensure non-negative values
+    }
+
+    if (b < 0) {
+        b = 0; // Ensure non-negative values
+    }
+
+    if (c < 0) {
+        c = 0; // Ensure non-negative values
+    }
+
+
+    int max = a;
+    if (b > max) max = b;
+    if (c > max) max = c;
+    return max;
+}
+
+
+__device__  int get_flat_index(int row, int col, int cols) {
+    if (row < 0 || col < 0 || cols <= 0) {
+        return -1;
+    }
+    return row * cols + col;
+}
+
+__device__  int get_value(int* matrix, int row, int col, int cols) {
+    const int flat_index = get_flat_index(row, col, cols);
+    if (flat_index < 0) {
+        return 0; // Return 0 for out-of-bounds indices
+    }
+    return matrix[flat_index];
+}
+
+
+__global__ void update_cell_in_diagonal(
+    int* matrix,
+    int d,
+    int cols,
+    int cells_count,
+    const char* strA,
+    const char* strB,
+    int match_score, int mismatch_penalty, int gap_penalty
+) {
+    const int thread_index = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (thread_index < cells_count) {
+        const int row = thread_index + ((d >= cols) ? (d - cols + 1) : 0);
+        const int col = d - row;
+        const int matrix_flat_index = get_flat_index(row, col, cols);
+
+        const int upper_v = get_value(matrix, row - 1, col, cols) + gap_penalty;
+        const int left_v = get_value(matrix, row, col - 1, cols) + gap_penalty;
+
+        int diagonal_v = get_value(matrix, row - 1, col - 1, cols) ;
+
+        if (strA[col] == strB[row]) {
+            diagonal_v += match_score;
+        } else {
+            diagonal_v += mismatch_penalty;
+        }
+
+
+        const int score = max_of_three(upper_v, left_v, diagonal_v);
+
+        matrix[matrix_flat_index] = score;
+    }
+}
 
 int get_count_of_cells(int index, int rows, int cols) {
     const int start_i = (index - (cols - 1) > 0) ? (index - (cols - 1)) : 0;
@@ -13,32 +84,11 @@ int get_count_of_cells(int index, int rows, int cols) {
     return (count > 0) ? count : 0;
 }
 
-__global__ void update_cell_in_diagonal(
-    int* matrix,
-    int d,
-    int cols,
-    int cells_count,
-    const char* strA,
-    const char* strB
-) {
-    const int thread_index = blockIdx.x * blockDim.x + threadIdx.x;
+int diagonal_count_cells(const char* psz1, const char* psz2) {
 
-    if (thread_index < cells_count) {
-        const int row = thread_index + ((d >= cols) ? (d - cols + 1) : 0);
-        const int col = d - row;
-        const int i = row * cols + col;
-
-        char upper = strA[0];
-        char left = strB[0];
-        printf("Thread %d: row=%d, col=%d, i=%d, upper=%c, left=%c\n", thread_index, row, col, i, upper, left);
-
-        matrix[i] = cells_count;
-    }
-}
-
-int diagonal_count_cells() {
-    const char* psz1 = "ab";
-    const char* psz2 = "cdefg";
+    const int match_score = 2;
+    const int mismatch_penalty = -1;
+    const int gap_penalty = -2;
 
     const int rows = strlen(psz2);
     const int cols = strlen(psz1);
@@ -79,7 +129,17 @@ int diagonal_count_cells() {
     for (int index = 0; index < cols + rows - 1;  index++) {
         const int count = get_count_of_cells(index, rows, cols);
         const int numBlocks = (count + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
-        update_cell_in_diagonal<<<numBlocks, THREADS_PER_BLOCK>>>(d_a, index, cols, count, d_strA, d_strB);
+        update_cell_in_diagonal<<<numBlocks, THREADS_PER_BLOCK>>>(
+                d_a,
+                index,
+                cols,
+                count,
+                d_strA,
+                d_strB,
+                match_score,
+                mismatch_penalty,
+                gap_penalty
+        );
     }
 
     cudaDeviceSynchronize();
@@ -120,5 +180,9 @@ int diagonal_count_cells() {
 
 int main() {
     //return diagonal_sum();
-    return diagonal_count_cells();
+    //
+    const char* psz1 = "ACGTC";
+    const char* psz2 = "ACATC";
+
+    return diagonal_count_cells(psz1, psz2);
 }

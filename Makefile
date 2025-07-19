@@ -102,7 +102,7 @@ cuda_sample: $(BIN_DIR)/cuda_sample
 
 $(BIN_DIR)/smith_waterman1: $(SRC_DIR)/smith_waterman1.cu
 	@mkdir -p $(BIN_DIR)
-	$(CUDA_CXX) -g -G $(SRC_DIR)/smith_waterman1.cu -o $(BIN_DIR)/smith_waterman1
+	$(CUDA_CXX) -g -G -O0 $(SRC_DIR)/smith_waterman1.cu -o $(BIN_DIR)/smith_waterman1
 
 
 smith_waterman1: $(BIN_DIR)/smith_waterman1
