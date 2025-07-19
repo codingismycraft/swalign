@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <cuda_runtime.h>
 
 #define THREADS_PER_BLOCK 256
 
@@ -84,11 +83,10 @@ int get_count_of_cells(int index, int rows, int cols) {
     return (count > 0) ? count : 0;
 }
 
-int diagonal_count_cells(const char* psz1, const char* psz2) {
+int diagonal_count_cells(const char* psz1, const char* psz2,
+    int match_score, int mismatch_penalty, int gap_penalty)
 
-    const int match_score = 2;
-    const int mismatch_penalty = -1;
-    const int gap_penalty = -2;
+{
 
     const int rows = strlen(psz2);
     const int cols = strlen(psz1);
@@ -183,6 +181,9 @@ int main() {
     //
     const char* psz1 = "ACGTC";
     const char* psz2 = "ACATC";
+    const int match_score = 2;
+    const int mismatch_penalty = -1;
+    const int gap_penalty = -2;
 
-    return diagonal_count_cells(psz1, psz2);
+    return diagonal_count_cells(psz1, psz2, match_score, mismatch_penalty, gap_penalty);
 }
