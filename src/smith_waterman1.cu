@@ -2,6 +2,9 @@
 #include <string.h>
 #include <stdlib.h>
 
+
+void print_matrix(int* matrix, int rows, int cols);
+
 #define THREADS_PER_BLOCK 256
 
 __device__ __forceinline__ int max_of_three(int a, int b, int c) {
@@ -49,8 +52,10 @@ __global__ void update_cell_in_diagonal(
     int cells_count,
     const char* strA,
     const char* strB,
-    int match_score, int mismatch_penalty, int gap_penalty
-) {
+    int match_score,
+    int mismatch_penalty,
+    int gap_penalty)
+{
     const int thread_index = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (thread_index < cells_count) {
@@ -163,22 +168,24 @@ int diagonal_count_cells(const char* psz1, const char* psz2,
     cudaFree(d_strA);
     cudaFree(d_strB);
 
-    // Print the resulting matrix
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            printf("%3d ", matrix[i * cols + j]);
-        }
-        printf("\n");
-    }
+    print_matrix(matrix, rows, cols);
 
     // Free the allocated memory
     free(matrix);
     return 0;
 }
 
+
+void print_matrix(int* matrix, int rows, int cols) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            printf("%3d ", matrix[i * cols + j]);
+        }
+        printf("\n");
+    }
+}
+
 int main() {
-    //return diagonal_sum();
-    //
     const char* psz1 = "ACGTC";
     const char* psz2 = "ACATC";
     const int match_score = 2;
