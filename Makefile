@@ -36,7 +36,9 @@ CUDA_CXX = nvcc
 BUILD ?= debug
 
 
-.PHONY: all clean debug release test_score_matrix test_utils swalign help cuda_sample smith_waterman1 tags
+.PHONY: all clean debug release test_score_matrix test_utils \
+	swalign help cuda_sample smith_waterman1 tags \
+	data_input
 
 
 help:  ## Show this help and exit
@@ -107,6 +109,14 @@ $(BIN_DIR)/smith_waterman1: $(SRC_DIR)/smith_waterman1.cu
 
 smith_waterman1: $(BIN_DIR)/smith_waterman1
 	$(BIN_DIR)/smith_waterman1
+
+
+$(BIN_DIR)/data_input: $(SRC_DIR)/data_input.cu
+	@mkdir -p $(BIN_DIR)
+	$(CUDA_CXX) -g -G $(SRC_DIR)/data_input.cu -o $(BIN_DIR)/data_input
+
+
+data_input: $(BIN_DIR)/data_input
 
 tags:
 	ctags -R -f tags .  ${RAPIDJSON_HOME}
