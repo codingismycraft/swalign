@@ -1,9 +1,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <vector>
+#include <string>
 
 
 void print_matrix(int* matrix, int rows, int cols);
+
+std::vector<std::pair<int, int>> findMaximumScores(int* matrix, int rows, int cols);
 
 #define THREADS_PER_BLOCK 256
 
@@ -29,14 +33,14 @@ __device__ __forceinline__ int max_of_three(int a, int b, int c) {
 }
 
 
-__device__  int get_flat_index(int row, int col, int cols) {
+__device__  __host__ int get_flat_index(int row, int col, int cols) {
     if (row < 0 || col < 0 || cols <= 0) {
         return -1;
     }
     return row * cols + col;
 }
 
-__device__  int get_value(int* matrix, int row, int col, int cols) {
+__device__ __host__ int get_value(int* matrix, int row, int col, int cols) {
     const int flat_index = get_flat_index(row, col, cols);
     if (flat_index < 0) {
         return 0; // Return 0 for out-of-bounds indices
@@ -170,9 +174,38 @@ int diagonal_count_cells(const char* psz1, const char* psz2,
 
     print_matrix(matrix, rows, cols);
 
+
+    std::vector<std::pair<int, int>> x = findMaximumScores(matrix, rows, cols);
+
+    for (const auto& pair : x) {
+        printf("Maximum score at (%d, %d)\n", pair.first, pair.second);
+    }
+
+
+
     // Free the allocated memory
     free(matrix);
     return 0;
+}
+
+std::vector<std::pair<int, int>> findMaximumScores(int* matrix, int rows, int cols) {
+    std::vector<std::pair<int, int>> result;
+
+    int current_max = -1;
+
+    for (int row = 0; row < rows; row++) {
+        for (int col = 0; col < cols; col++) {
+            const int value = matrix[row * cols + col];
+            if (value > current_max) {
+                result.clear();
+            }
+            if (value >= current_max) {
+                current_max = value;
+                result.push_back(std::make_pair(row, col));
+            }
+        }
+    }
+    return result;
 }
 
 
@@ -188,9 +221,13 @@ void print_matrix(int* matrix, int rows, int cols) {
 int main() {
     const char* psz1 = "ACGTC";
     const char* psz2 = "ACATC";
+
+    const std::string s1 = "GCATGC";
+    const std::string s2 = "GATTAC";
+
     const int match_score = 2;
     const int mismatch_penalty = -1;
-    const int gap_penalty = -2;
+    const int gap_penalty = -1;
 
-    return diagonal_count_cells(psz1, psz2, match_score, mismatch_penalty, gap_penalty);
+    return diagonal_count_cells(s1.c_str(), s2.c_str(), match_score, mismatch_penalty, gap_penalty);
 }

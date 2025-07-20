@@ -90,6 +90,10 @@ void test4(){
     const std::string s2 = "GATTAC";
 
     ScoreMatrix scoreMatrix(s1, s2, 2, -1, -1);
+
+    const std::string expected_str = scoreMatrix.toString();
+
+    std::cout << expected_str << std::endl;
     std::cout << scoreMatrix << std::endl;
 }
 
@@ -104,10 +108,10 @@ void test5(){
 
 
 int main(){
-    testScoreMatrix();
+    // testScoreMatrix();
     //test2();
     // test3();
-    //test4();
+    test4();
     //test5();
 }
 
