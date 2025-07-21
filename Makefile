@@ -55,6 +55,7 @@ else
     CXXFLAGS = -std=c++20 -Wall -g ${HEADERS}
     BIN_DIR = ./bin/debug
     OBJDIR = ./obj/debug
+	NVCCFLAGS = -g -G -O0 -Xcompiler -Wall ${HEADERS}
 endif
 
 
@@ -66,6 +67,11 @@ clean:
 $(OBJDIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(OBJDIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Build rule for CUDA source files
+$(OBJDIR)/%.o: $(SRC_DIR)/%.cu
+	@mkdir -p $(OBJDIR)
+	$(CUDA_CXX) $(NVCCFLAGS) -c $< -o $@
 
 
 $(BIN_DIR)/test_score_matrix: ./headers/score_matrix.h $(OBJDIR)/score_matrix.o $(TEST_DIR)/test_score_matrix.cpp
@@ -111,12 +117,13 @@ smith_waterman1: $(BIN_DIR)/smith_waterman1
 	$(BIN_DIR)/smith_waterman1
 
 
-$(BIN_DIR)/data_input: $(SRC_DIR)/data_input.cu
+$(BIN_DIR)/data_input: $(SRC_DIR)/data_input.cu $(OBJDIR)/local_alignment.o
 	@mkdir -p $(BIN_DIR)
-	$(CUDA_CXX) -g -G $(SRC_DIR)/data_input.cu -o $(BIN_DIR)/data_input
+	$(CUDA_CXX) $(NVCCFLAGS) $(SRC_DIR)/data_input.cu -o $(BIN_DIR)/data_input $(OBJDIR)/local_alignment.o
 
 
 data_input: $(BIN_DIR)/data_input
+	$(BIN_DIR)/data_input
 
 tags:
 	ctags -R -f tags .  ${RAPIDJSON_HOME}

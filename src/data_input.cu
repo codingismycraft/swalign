@@ -3,6 +3,13 @@
 #include <string>
 #include <cstdlib>
 #include <cstring>
+#include <vector>
+#include "local_alignment.h"
+
+#define DEFAULT_MATCH_SCORE 2
+#define DEFAULT_MISMATCH_PENALTY -1
+#define DEFAULT_GAP_PENALTY -1
+
 
 // Prints help message for command-line usage
 void print_help(const char* progname) {
@@ -44,12 +51,15 @@ std::string read_sequence_from_file(const std::string& filename) {
     return sequence;
 }
 
-int main(int argc, char* argv[]) {
+
+int processUserInput(int argc, char* argv[]) {
+
     // Print help if requested or insufficient arguments
     if (argc < 3) {
         print_help(argv[0]);
         return 1;
     }
+
     if (argc >= 2 && (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0)) {
         print_help(argv[0]);
         return 0;
@@ -71,9 +81,9 @@ int main(int argc, char* argv[]) {
     }
 
     // Default scoring parameters
-    int match_score = 2;
-    int mismatch_penalty = -1;
-    int gap_penalty = -1;
+    int match_score = DEFAULT_MATCH_SCORE;
+    int mismatch_penalty = DEFAULT_MISMATCH_PENALTY;
+    int gap_penalty = DEFAULT_GAP_PENALTY;
 
     // Parse command-line options
     for (int i = 3; i < argc; ++i) {
@@ -111,5 +121,26 @@ int main(int argc, char* argv[]) {
     std::cout << seq2 << std::endl;
 
     return 0;
+}
+
+
+
+int main(int argc, char* argv[]) {
+    if (argc < 3) {
+
+        LocalAlignmentFinder laf (
+            "ACGTAG",
+            "ACGTTAG",
+            DEFAULT_MATCH_SCORE,
+            DEFAULT_MISMATCH_PENALTY,
+            DEFAULT_GAP_PENALTY
+        );
+
+        laf.print_matrix();
+        return 0;
+    }
+    else {
+        return processUserInput(argc, argv);
+    }
 }
 
