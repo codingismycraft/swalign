@@ -1,6 +1,7 @@
 
 #include "local_alignment.h"
 
+#include <sstream>
 #include <iostream>
 #include <stdexcept>
 #include <stdio.h>
@@ -8,6 +9,8 @@
 #include <stdlib.h>
 #include <vector>
 #include <new>
+#include <iomanip>
+#include <assert.h>
 
 
 #define THREADS_PER_BLOCK 256
@@ -98,8 +101,10 @@ LocalAlignmentFinder::LocalAlignmentFinder( const std::string& s1, const std::st
             m_max_score(0),
             m_rows(s2.length()),
             m_cols(s1.length()),
-            m_matrix_size(m_rows * m_cols* sizeof(int))
+            m_matrix_size(long(m_rows) * m_cols* sizeof(int))
 {
+    std::cout << "LocalAlignmentFinder initialized with sequences of lengths: "
+              << m_rows << " and " << m_matrix_size << std::endl;
     if (m_matrix_size <= 0) {
         throw std::invalid_argument("value must be non-negative");
     }
@@ -178,13 +183,16 @@ void LocalAlignmentFinder::initializeMatrix() {
     cudaFree(d_strB);
 
     findMaxScores();
+     for (const auto& pos : m_max_positions) {
+        traceback(pos.first, pos.second, "", "", "");
+    }
 
 }
 
 void LocalAlignmentFinder::print_matrix() const {
-    for (int i = 0; i < m_rows; i++) {
-        for (int j = 0; j < m_cols; j++) {
-            printf("%3d ", m_matrix[i * m_cols + j]);
+    for (int row = 0; row < m_rows; row++) {
+        for (int col = 0; col < m_cols; col++) {
+            printf("%3d ", getScore(row, col));
         }
         printf("\n");
     }
@@ -208,5 +216,208 @@ void LocalAlignmentFinder::findMaxScores() {
     }
 }
 
+const std::string& LocalAlignmentFinder::getSequence1() const{
+    return m_sequence1;
+}
 
+
+const std::string& LocalAlignmentFinder::getSequence2() const {
+    return m_sequence2;
+}
+
+
+int LocalAlignmentFinder::getRowCount() const {
+    return m_rows;
+}
+
+int LocalAlignmentFinder::getColCount() const {
+    return m_cols;
+}
+
+int LocalAlignmentFinder::getScore(int row, int col) const {
+    if (row < 0 || row >= m_rows || col < 0 || col >= m_cols) {
+        throw std::out_of_range("Row or column index out of bounds");
+    }
+    const int index = row * m_cols + col;
+    return m_matrix[index];
+}
+
+const std::vector<std::string>& LocalAlignmentFinder::getLocalAlignments() const {
+    return m_local_alignments;
+}
+
+std::string LocalAlignmentFinder::toString() const {
+    std::ostringstream oss;
+    const int width = 6;
+    if (m_matrix == nullptr) return "";
+
+    // Build horizontal separator
+    std::string separator;
+    // The separator needs to cover one extra for the row label column.
+    for (int col = 0; col < getColCount() + 1; ++col) {
+        separator += std::string(width, '_');
+        if (col + 1 < getColCount() + 1) separator += "|";
+    }
+    separator += "\n";
+
+    // Print top separator
+    oss << separator;
+
+    // Print header row: empty cell, then m_sequence1 characters as column headers
+    oss << std::setw(width) << ' ';
+
+    oss << "|" << std::setw(width) << ' ';
+    for (int col = 0; col < getColCount()-1; ++col) {
+        oss << "|" << std::setw(width) << m_sequence1[col];
+    }
+    oss << "\n" << separator;
+
+    // Print all matrix rows
+    for (int row = 0; row < getRowCount(); ++row) {
+        // First column: empty for first row, else m_sequence2 character
+        if (row == 0) {
+            oss << std::setw(width) << ' ';
+        } else {
+            oss << std::setw(width) << m_sequence2[row - 1];
+        }
+        // Print all matrix columns for this row
+        for (int col = 0; col < getRowCount(); ++col) {
+            oss << "|" << std::setw(width) << getScore(row, col);
+        }
+        oss << "\n" << separator;
+    }
+
+    return oss.str();
+}
+
+void LocalAlignmentFinder::traceback(int row, int col, std::string x1, std::string x2, std::string a) {
+    while(row >0 && col >0 && getScore(row, col) > 0) {
+        if (m_local_alignments.size() >= m_max_alignments)
+        {
+            return;
+        }
+
+        const int row_coming_in = row;
+        const int col_coming_in = col;
+
+        const std::string a_coming_in = a;
+        const std::string x1_coming_in = x1;
+        const std::string x2_coming_in = x2;
+
+        const int current_score = getScore(row, col);
+        const int diagonal_row = row - 1;
+        const int diagonal_col = col - 1;
+
+        const bool valid_diagonal = (diagonal_row >= 0 && diagonal_col >= 0);
+        const bool valid_up_col = (col - 1 >= 0);
+        const bool valid_left_row = (row - 1 >= 0);
+
+        bool already_moved = false;
+
+
+        if (valid_diagonal && getScore(diagonal_row, diagonal_col) + m_match_score == current_score) {
+            if (!already_moved) {
+                a = '*' + a_coming_in;
+                x1 = m_sequence1[col_coming_in - 1] + x1_coming_in;
+                x2 = m_sequence2[row_coming_in  - 1] + x2_coming_in;
+                row = diagonal_row;
+                col = diagonal_col;
+                already_moved = true;
+            }
+            else {
+                assert (false && "Traceback logic error: already_moved should not be true here");
+            }
+        }
+
+        if (valid_diagonal && getScore(diagonal_row, diagonal_col) + m_mismatch_penalty == current_score) {
+            if (!already_moved) {
+                a = '|' + a_coming_in;
+                x1 = m_sequence1[col_coming_in - 1] + x1_coming_in;
+                x2 = m_sequence2[row_coming_in  - 1] + x2_coming_in;
+                row = diagonal_row;
+                col = diagonal_col;
+                already_moved = true;
+            }
+            else {
+                if (m_local_alignments.size() < m_max_alignments) {
+                    traceback(
+                        diagonal_row,
+                        diagonal_col,
+                        m_sequence1[col_coming_in - 1] + x1_coming_in,
+                        m_sequence2[row_coming_in  - 1] + x2_coming_in,
+                        '|' + a_coming_in
+                   );
+               }
+            }
+        }
+
+
+        if (valid_left_row && getScore(row_coming_in  - 1, col_coming_in) + m_gap_penalty == current_score) {
+            if (!already_moved) {
+                a = ' ' + a;
+                x1 = '_' + x1;
+                x2= m_sequence2[row_coming_in  - 1] + x2;
+                row -= 1;
+                already_moved = true;
+            }
+            else {
+                if (m_local_alignments.size() < m_max_alignments) {
+                    traceback(
+                        row_coming_in  - 1,
+                        col_coming_in,
+                        '_' + x1_coming_in,
+                        m_sequence2[row_coming_in  - 1] + x2_coming_in,
+                        ' ' + a_coming_in
+                   );
+                }
+            }
+        }
+
+        if (valid_up_col && getScore(row_coming_in, col_coming_in  - 1) + m_gap_penalty == current_score) {
+            if (!already_moved) {
+                a = ' ' + a;
+                x1 = m_sequence1[col - 1] + x1;
+                x2 = '_' + x2;
+                col  -= 1;
+                already_moved = true;
+            }
+            else {
+                if (m_local_alignments.size() < m_max_alignments) {
+                    traceback(
+                        row_coming_in,
+                        col_coming_in  - 1,
+                        m_sequence1[col_coming_in - 1] + x1_coming_in,
+                        '_' + x2_coming_in,
+                        ' ' + a_coming_in
+                   );
+                }
+            }
+        }
+
+       assert(already_moved && "Traceback logic error");
+       assert (row < row_coming_in || col < col_coming_in);
+    }
+
+    m_local_alignments.push_back("\n"  + x2 + "\n" + a + "\n" + x1 + "\n");
+}
+
+
+
+std::ostream& operator<<(std::ostream& os, const LocalAlignmentFinder& obj) {
+    os << "\n***************************************" << std::endl;
+    os << "Seq1: " << obj.getSequence1() << std::endl;
+    os << "Seq2: " << obj.getSequence2() << std::endl;
+
+    //os << "\nNumber of Alignments ..: " << obj.getNumberOfAlignments()<< std::endl;
+    //os << "Max score .............: " << obj.getMaxScore()<< std::endl;
+
+    int counter = 1;
+    os << "\n--------------------------" << std::endl;
+    for (const auto& aln : obj.getLocalAlignments()) {
+         os << "Alignment num: " << counter++ << "\n";
+         os << aln << std::endl;
+         os << "--------------------------" << std::endl;
+    }
+    return os;
+}
 

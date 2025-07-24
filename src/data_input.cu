@@ -116,27 +116,44 @@ int processUserInput(int argc, char* argv[]) {
     std::string seq1 = read_sequence_from_file(seq1_file);
     std::string seq2 = read_sequence_from_file(seq2_file);
 
-    std::cout << seq1 << std::endl;
+    std::cout << seq1.length() << std::endl;
     std::cout << "--------------------" << std::endl;
-    std::cout << seq2 << std::endl;
+    std::cout << seq2.length() << std::endl;
+
+    LocalAlignmentFinder laf (
+        seq1,
+        seq2,
+        match_score,
+        mismatch_penalty,
+        gap_penalty
+    );
+
+
+    std::cout << laf << std::endl;
 
     return 0;
 }
-
 
 
 int main(int argc, char* argv[]) {
     if (argc < 3) {
 
         LocalAlignmentFinder laf (
-            "ACGTAG",
-            "ACGTTAG",
+            "GCATGC",
+            "GATTAC",
             DEFAULT_MATCH_SCORE,
             DEFAULT_MISMATCH_PENALTY,
             DEFAULT_GAP_PENALTY
         );
 
+
         laf.print_matrix();
+
+        const std::string expected_str = laf.toString();
+
+        std::cout << expected_str << std::endl;
+        std::cout << laf << std::endl;
+
         return 0;
     }
     else {

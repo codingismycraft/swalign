@@ -1,22 +1,11 @@
 #ifndef LOCAL_ALIGNMENT_INCLUDED
 #define LOCAL_ALIGNMENT_INCLUDED
 
-
-
 #include <ostream>
 #include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
-
-int findLocalAlignments(
-    const char* sequence1,
-    const char* sequence2,
-    int match_score,
-    int mismatch_penalty,
-    int gap_penalty
-);
-
 
 class LocalAlignmentFinder {
 
@@ -49,6 +38,7 @@ class LocalAlignmentFinder {
         std::string getLocalAlignmentsAsJson() const;
         size_t getNumberOfAlignments() const;
         void print_matrix() const;
+        int getMatrixValue(int row, int col) const;
 
     private:
         // Private functions.
@@ -67,7 +57,7 @@ class LocalAlignmentFinder {
         const int m_match_score;
         const int m_mismatch_penalty;
         const int m_gap_penalty;
-        const int m_matrix_size;
+        const long long m_matrix_size;
         const size_t m_max_alignments;
 
         // Keep internal state.
