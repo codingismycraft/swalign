@@ -67,16 +67,16 @@ __global__ void update_cell_in_diagonal(
     const int thread_index = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (thread_index < cells_count) {
-        const int row = thread_index + ((d >= cols) ? (d - cols + 1) : 0);
-        const int col = d - row;
-        const int matrix_flat_index = get_flat_index(row, col, cols);
+        const int row = thread_index + ((d >= cols) ? (d - cols + 1) : 0) + 1;
+        const int col = d - row + 1;
+        const int matrix_flat_index = get_flat_index(row, col, cols );
 
         const int upper_v = get_value(matrix, row - 1, col, cols) + gap_penalty;
         const int left_v = get_value(matrix, row, col - 1, cols) + gap_penalty;
 
         int diagonal_v = get_value(matrix, row - 1, col - 1, cols) ;
 
-        if (strA[col] == strB[row]) {
+        if (strA[col-1] == strB[row-1]) {
             diagonal_v += match_score;
         } else {
             diagonal_v += mismatch_penalty;
@@ -99,8 +99,8 @@ LocalAlignmentFinder::LocalAlignmentFinder( const std::string& s1, const std::st
             m_gap_penalty(gap_penalty),
             m_max_alignments(max_alignments),
             m_max_score(0),
-            m_rows(s2.length()),
-            m_cols(s1.length()),
+            m_rows(s2.length()+1),
+            m_cols(s1.length()+1),
             m_matrix_size(long(m_rows) * m_cols* sizeof(int))
 {
     std::cout << "LocalAlignmentFinder initialized with sequences of lengths: "
@@ -153,7 +153,7 @@ void LocalAlignmentFinder::initializeMatrix() {
         throw std::bad_alloc();
     }
 
-    for (int index = 0; index < m_cols + m_rows - 1;  index++) {
+    for (int index = 1; index < m_cols + m_rows - 1;  index++) {
         const int count = count_anti_diagonal_cells(index);
         const int numBlocks = (count + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
         update_cell_in_diagonal<<<numBlocks, THREADS_PER_BLOCK>>>(
