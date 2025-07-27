@@ -6,7 +6,8 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
-static const uint64_t _HEADER_SIZE = sizeof(uint64_t) * 2;
+
+constexpr uint64_t HEADER_SIZE = sizeof(uint64_t) * 2;
 
 std::unique_ptr<BigArray> BigArray::make_new(const std::string& filename, uint64_t rows, uint64_t cols) {
     return std::unique_ptr<BigArray>(new BigArray(filename, rows, cols));
@@ -25,41 +26,40 @@ BigArray::BigArray(const std::string& filename, uint64_t rows, uint64_t cols)
 {
     const uint64_t array_size = m_rows * m_cols;
 
-    m_file_size = _HEADER_SIZE + array_size * sizeof(int32_t);
+    if (m_cols != 0 && array_size / m_cols != m_rows) {
+        throw std::runtime_error("Row or column count overflow");
+    }
+
+    m_file_size = HEADER_SIZE + array_size * sizeof(int32_t);
+
+    if (m_file_size > SIZE_MAX) {
+        throw std::runtime_error("File size exceeds SIZE_MAX, cannot map.");
+    }
 
     m_fd = open(m_filename.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
 
     if (m_fd == -1) {
-        perror("open");
-        exit(1);
+        throw std::runtime_error("Failed to open file for writing");
     }
 
     if (ftruncate(m_fd, m_file_size) == -1) {
-        perror("ftruncate");
-        exit(1);
-    }
-
-    // Only map up to size_t bytes at a time!
-    if (m_file_size > SIZE_MAX) {
-        fprintf(stderr, "Cannot map file larger than SIZE_MAX at once.\n");
-        exit(1);
+        throw std::runtime_error("Failed to set file size");
     }
 
 
     m_mmapped_ptr = mmap(
-            NULL, m_file_size, PROT_READ | PROT_WRITE, MAP_SHARED, m_fd, 0
+        NULL, m_file_size, PROT_READ | PROT_WRITE, MAP_SHARED, m_fd, 0
     );
 
     if (m_mmapped_ptr == MAP_FAILED) {
-        perror("mmap");
-        exit(1);
+        throw std::runtime_error("Failed to set file size");
     }
 
     // Write header
     memcpy(m_mmapped_ptr, &m_rows, sizeof(uint64_t));
     memcpy((char*)m_mmapped_ptr + sizeof(uint64_t), &m_cols, sizeof(uint64_t));
 
-    m_data = (int32_t*)((char*)m_mmapped_ptr + _HEADER_SIZE);
+    m_data = (int32_t*)((char*)m_mmapped_ptr + HEADER_SIZE);
 }
 
 BigArray::BigArray(const std::string& filename)
@@ -68,22 +68,23 @@ BigArray::BigArray(const std::string& filename)
     m_fd = open(m_filename.c_str(), O_RDWR, 0);
 
     if (m_fd == -1) {
-        perror("open");
-        exit(1);
+        throw std::runtime_error("Failed to open file for reading");
     }
 
     struct stat st;
 
     if (fstat(m_fd, &st) == -1) {
-        perror("fstat");
-        exit(1);
+        throw std::runtime_error("Failed to get file status");
+    }
+
+    if (static_cast<uint64_t>(st.st_size) < HEADER_SIZE) {
+        throw std::runtime_error("File too small to be a valid BigArray");
     }
 
     m_file_size = st.st_size;
 
     if (m_file_size > SIZE_MAX) {
-        fprintf(stderr, "Cannot map file larger than SIZE_MAX at once.\n");
-        exit(1);
+        throw std::runtime_error("File size exceeds SIZE_MAX, cannot map.");
     }
 
     m_mmapped_ptr = mmap(
@@ -96,14 +97,13 @@ BigArray::BigArray(const std::string& filename)
     );
 
     if (m_mmapped_ptr == MAP_FAILED) {
-        perror("mmap");
-        exit(1);
+        throw std::runtime_error("Failed to map file into memory");
     }
 
     memcpy(&m_rows, m_mmapped_ptr, sizeof(uint64_t));
     memcpy(&m_cols, (char*)m_mmapped_ptr + sizeof(uint64_t), sizeof(uint64_t));
 
-    m_data = (int32_t*)((char*)m_mmapped_ptr + _HEADER_SIZE);
+    m_data = (int32_t*)((char*)m_mmapped_ptr + HEADER_SIZE);
 }
 
 
@@ -114,6 +114,7 @@ BigArray::~BigArray(){
 
   if (m_mmapped_ptr) {
       munmap(m_mmapped_ptr, (size_t)m_file_size);
+      m_mmapped_ptr = nullptr;
   }
 
   if (m_fd != -1) {
@@ -123,10 +124,16 @@ BigArray::~BigArray(){
 }
 
 int32_t BigArray::get(uint64_t row, uint64_t col) const {
+    if (row >= m_rows || col >= m_cols) {
+        throw std::out_of_range("Index out of bounds");
+    }
     return m_data[row * m_cols + col];
 }
 
-void BigArray::set(uint64_t row, uint64_t col, int value) {
+void BigArray::set(uint64_t row, uint64_t col, int32_t value) {
+    if (row >= m_rows || col >= m_cols) {
+        throw std::out_of_range("Index out of bounds");
+    }
     m_data[row * m_cols + col] = value;
 }
 
