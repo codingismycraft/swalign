@@ -1,29 +1,57 @@
 #include "big_array.h"
-
 #include <cstdint>
 #include <cstring>
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 
-
 constexpr uint64_t HEADER_SIZE = sizeof(uint64_t) * 2;
 
 std::unique_ptr<BigArray> BigArray::make_new(const std::string& filename, uint64_t rows, uint64_t cols) {
-    return std::unique_ptr<BigArray>(new BigArray(filename, rows, cols));
+    auto big_array = std::unique_ptr<BigArray>(new BigArray());
+    big_array->create_new(filename, rows, cols);
+    if (big_array->m_fd == -1) {
+        throw std::runtime_error("Failed to load BigArray from file: " + filename);
+    }
+    return big_array;
 }
 
 
 std::unique_ptr<BigArray> BigArray::load(const std::string& filename) {
-    return std::unique_ptr<BigArray>(new BigArray(filename));
+    auto big_array = std::unique_ptr<BigArray>(new BigArray());
+    big_array->load_from_file(filename);
+    if (big_array->m_fd == -1) {
+        throw std::runtime_error("Failed to load BigArray from file: " + filename);
+    }
+    return big_array;
+}
+
+BigArray::BigArray() :
+    m_filename(""),
+    m_rows(0),
+    m_cols(0),
+    m_file_size(0),
+    m_fd(-1),
+    m_mmapped_ptr(nullptr),
+    m_data(nullptr)
+{
 }
 
 
-BigArray::BigArray(const std::string& filename, uint64_t rows, uint64_t cols)
-    : m_filename(filename),
-      m_rows(rows),
-      m_cols(cols)
+void BigArray::create_new(const std::string& filename, uint64_t rows, uint64_t cols)
 {
+    if (m_fd != -1) {
+        throw std::runtime_error("BigArray already initialized, cannot create new instance");
+    }
+
+    if (rows == 0 || cols == 0) {
+        throw std::invalid_argument("Rows and columns must be greater than zero");
+    }
+
+    m_filename = filename;
+    m_rows = rows;
+    m_cols = cols;
+
     const uint64_t array_size = m_rows * m_cols;
 
     if (m_cols != 0 && array_size / m_cols != m_rows) {
@@ -52,7 +80,7 @@ BigArray::BigArray(const std::string& filename, uint64_t rows, uint64_t cols)
     );
 
     if (m_mmapped_ptr == MAP_FAILED) {
-        throw std::runtime_error("Failed to set file size");
+        throw std::runtime_error("Failed to map file into memory");
     }
 
     // Write header
@@ -62,9 +90,12 @@ BigArray::BigArray(const std::string& filename, uint64_t rows, uint64_t cols)
     m_data = (int32_t*)((char*)m_mmapped_ptr + HEADER_SIZE);
 }
 
-BigArray::BigArray(const std::string& filename)
-    : m_filename(filename)
+void BigArray::load_from_file(const std::string& filename)
 {
+    if (m_fd != -1) {
+        throw std::runtime_error("BigArray already initialized, cannot create new instance");
+    }
+    m_filename = filename;
     m_fd = open(m_filename.c_str(), O_RDWR, 0);
 
     if (m_fd == -1) {

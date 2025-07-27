@@ -9,27 +9,24 @@
 
 class BigArray{
     private:
-
-        const std::string m_filename;
-
+        std::string m_filename;
         uint64_t m_rows;
         uint64_t m_cols;
-        uint64_t m_file_size;   // Use uint64_t for huge file sizes!
+        uint64_t m_file_size;
         int m_fd;
-
         void* m_mmapped_ptr;
         int32_t* m_data;
 
-        // Private constructor to enforce use of factory methods
-        BigArray(const std::string& filename, uint64_t rows, uint64_t cols);
-        BigArray(const std::string& filename);
-
+        BigArray();
 
         // Disable copy and move semantics
         BigArray(const BigArray&) = delete;
         BigArray& operator=(const BigArray&) = delete;
         BigArray(BigArray&&) = delete;
         BigArray& operator=(BigArray&&) = delete;
+
+        void create_new(const std::string& filename, uint64_t rows, uint64_t cols);
+        void load_from_file(const std::string& filename);
 
     public:
 
