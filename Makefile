@@ -38,7 +38,7 @@ BUILD ?= debug
 
 .PHONY: all clean debug release test_score_matrix test_utils \
 	swalign help cuda_sample smith_waterman1 tags \
-	data_input
+	data_input test_big_array
 
 
 help:  ## Show this help and exit
@@ -51,6 +51,7 @@ ifeq ($(BUILD),release)
     CXXFLAGS = -std=c++20 -Wall -O3 -DNDEBUG ${HEADERS}
     BIN_DIR = ./bin/release
     OBJDIR = ./obj/release
+	NVCCFLAGS = -Xcompiler -Wall ${HEADERS}
 else
     CXXFLAGS = -std=c++20 -Wall -g ${HEADERS}
     BIN_DIR = ./bin/debug
@@ -91,6 +92,14 @@ $(BIN_DIR)/test_utils: ./headers/utils.h $(OBJDIR)/utils.o $(TEST_DIR)/test_util
 test_utils: $(BIN_DIR)/test_utils
 	$(BIN_DIR)/test_utils
 
+
+$(BIN_DIR)/test_big_array: ./headers/big_array.h $(OBJDIR)/big_array.o $(TEST_DIR)/test_big_array.cpp
+	@mkdir -p $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJDIR)/big_array.o $(TEST_DIR)/test_big_array.cpp
+
+
+test_big_array: $(BIN_DIR)/test_big_array
+	$(BIN_DIR)/test_big_array
 
 $(BIN_DIR)/swalign: ./headers/score_matrix.h $(OBJDIR)/score_matrix.o $(OBJDIR)/utils.o $(OBJDIR)/swalign.o
 	@mkdir -p $(BIN_DIR)

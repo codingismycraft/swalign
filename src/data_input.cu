@@ -3,7 +3,7 @@
 #include <string>
 #include <cstdlib>
 #include <cstring>
-#include <vector>
+#include <chrono>
 #include "local_alignment.h"
 
 #define DEFAULT_MATCH_SCORE 2
@@ -42,6 +42,11 @@ std::string read_sequence_from_file(const std::string& filename) {
     }
     std::string sequence, line;
     while (std::getline(file, line)) {
+        if (line.empty() || line[0] == '>') {
+            // Skip empty lines and comment lines starting with '>'
+            std::cout << "Skipping line: " << line << std::endl;
+            continue;
+        }
         for (char c : line) {
             if (!isspace(static_cast<unsigned char>(c))) {
                 sequence += c;
@@ -157,7 +162,16 @@ int main(int argc, char* argv[]) {
         return 0;
     }
     else {
-        return processUserInput(argc, argv);
+        auto start = std::chrono::high_resolution_clock::now();
+        processUserInput(argc, argv);
+        auto end = std::chrono::high_resolution_clock::now();
+        // Calculate duration
+        std::chrono::duration<double> duration = end - start;
+
+        // Output duration in seconds
+        std::cout << "Duration: " << duration.count() << " seconds" << std::endl;
+
+        return 0;
     }
 }
 
