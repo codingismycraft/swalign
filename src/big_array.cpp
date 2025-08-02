@@ -1,13 +1,13 @@
 #include "big_array.h"
-#include <cstdint>
+#include <cstddef> // for size_t
 #include <cstring>
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 
-constexpr uint64_t HEADER_SIZE = sizeof(uint64_t) * 2;
+constexpr size_t HEADER_SIZE = sizeof(size_t) * 2;
 
-std::unique_ptr<BigArray> BigArray::make_new(const std::string& filename, uint64_t rows, uint64_t cols) {
+std::unique_ptr<BigArray> BigArray::make_new(const std::string& filename, size_t rows, size_t cols) {
     auto big_array = std::unique_ptr<BigArray>(new BigArray());
     big_array->create_new(filename, rows, cols);
     if (big_array->m_fd == -1) {
@@ -38,7 +38,7 @@ BigArray::BigArray() :
 }
 
 
-void BigArray::create_new(const std::string& filename, uint64_t rows, uint64_t cols)
+void BigArray::create_new(const std::string& filename, size_t rows, size_t cols)
 {
     if (m_fd != -1) {
         throw std::runtime_error("BigArray already initialized, cannot create new instance");
@@ -52,7 +52,7 @@ void BigArray::create_new(const std::string& filename, uint64_t rows, uint64_t c
     m_rows = rows;
     m_cols = cols;
 
-    const uint64_t array_size = m_rows * m_cols;
+    const size_t array_size = m_rows * m_cols;
 
     if (m_cols != 0 && array_size / m_cols != m_rows) {
         throw std::runtime_error("Row or column count overflow");
@@ -84,8 +84,8 @@ void BigArray::create_new(const std::string& filename, uint64_t rows, uint64_t c
     }
 
     // Write header
-    memcpy(m_mmapped_ptr, &m_rows, sizeof(uint64_t));
-    memcpy((char*)m_mmapped_ptr + sizeof(uint64_t), &m_cols, sizeof(uint64_t));
+    memcpy(m_mmapped_ptr, &m_rows, sizeof(size_t));
+    memcpy((char*)m_mmapped_ptr + sizeof(size_t), &m_cols, sizeof(size_t));
 
     m_data = (int32_t*)((char*)m_mmapped_ptr + HEADER_SIZE);
 }
@@ -108,7 +108,7 @@ void BigArray::load_from_file(const std::string& filename)
         throw std::runtime_error("Failed to get file status");
     }
 
-    if (static_cast<uint64_t>(st.st_size) < HEADER_SIZE) {
+    if (static_cast<size_t>(st.st_size) < HEADER_SIZE) {
         throw std::runtime_error("File too small to be a valid BigArray");
     }
 
@@ -131,8 +131,8 @@ void BigArray::load_from_file(const std::string& filename)
         throw std::runtime_error("Failed to map file into memory");
     }
 
-    memcpy(&m_rows, m_mmapped_ptr, sizeof(uint64_t));
-    memcpy(&m_cols, (char*)m_mmapped_ptr + sizeof(uint64_t), sizeof(uint64_t));
+    memcpy(&m_rows, m_mmapped_ptr, sizeof(size_t));
+    memcpy(&m_cols, (char*)m_mmapped_ptr + sizeof(size_t), sizeof(size_t));
 
     m_data = (int32_t*)((char*)m_mmapped_ptr + HEADER_SIZE);
 }
@@ -154,14 +154,14 @@ BigArray::~BigArray(){
   }
 }
 
-int32_t BigArray::get(uint64_t row, uint64_t col) const {
+int32_t BigArray::get(size_t row, size_t col) const {
     if (row >= m_rows || col >= m_cols) {
         throw std::out_of_range("Index out of bounds");
     }
     return m_data[row * m_cols + col];
 }
 
-void BigArray::set(uint64_t row, uint64_t col, int32_t value) {
+void BigArray::set(size_t row, size_t col, int32_t value) {
     if (row >= m_rows || col >= m_cols) {
         throw std::out_of_range("Index out of bounds");
     }

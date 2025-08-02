@@ -16,20 +16,20 @@
 #define BIG_ARRAY_INCLUDED
 
 #include <string>
-#include <cstdint>
+#include <cstddef> // for size_t
 #include <memory>
 
 
 class BigArray{
 
     public:
-        static std::unique_ptr<BigArray> make_new(const std::string& filename, uint64_t rows, uint64_t  cols);
+        static std::unique_ptr<BigArray> make_new(const std::string& filename, size_t rows, size_t  cols);
         static std::unique_ptr<BigArray> load(const std::string& filename);
 
         ~BigArray();
 
-        int32_t get(uint64_t row, uint64_t col) const;
-        void set(uint64_t row, uint64_t col, int value);
+        int32_t get(size_t row, size_t col) const;
+        void set(size_t row, size_t col, int value);
         const std::string& get_filename() const;
     private:
         BigArray();
@@ -38,13 +38,13 @@ class BigArray{
         BigArray(BigArray&&) = delete;
         BigArray& operator=(BigArray&&) = delete;
 
-        void create_new(const std::string& filename, uint64_t rows, uint64_t cols);
+        void create_new(const std::string& filename, size_t rows, size_t cols);
         void load_from_file(const std::string& filename);
     private:
         std::string m_filename;
-        uint64_t m_rows;
-        uint64_t m_cols;
-        uint64_t m_file_size;
+        size_t m_rows;
+        size_t m_cols;
+        size_t m_file_size;
         int m_fd;
         void* m_mmapped_ptr;
         int32_t* m_data;
