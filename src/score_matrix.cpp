@@ -32,6 +32,7 @@
 #include <numeric>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -208,7 +209,7 @@ std::string ScoreMatrix::toString() const {
             oss << std::setw(width) << m_sequence2[row - 1];
         }
         // Print all matrix columns for this row
-        for (int col = 0; col < getRowCount(); ++col) {
+        for (int col = 0; col < getRowCount() - 1; ++col) {
             oss << "|" << std::setw(width) << getMatrixValue(row, col, getColCount(), m_matrix);
         }
         oss << "\n" << separator;
@@ -242,8 +243,9 @@ void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, st
 
         bool already_moved = false;
 
+        const bool same_char = (m_sequence1[col-1] == m_sequence2[row-1]);
 
-        if (valid_diagonal && getScore(diagonal_row, diagonal_col) + m_match_score == current_score) {
+        if (same_char && valid_diagonal && getScore(diagonal_row, diagonal_col) + m_match_score == current_score) {
             if (!already_moved) {
                 a = '*' + a_coming_in;
                 x1 = m_sequence1[col_coming_in - 1] + x1_coming_in;
@@ -325,9 +327,7 @@ void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, st
        assert(already_moved && "Traceback logic error");
        assert (row < row_coming_in || col < col_coming_in);
     }
-
     a = a + " " + std::to_string(evaluateScore(a));
-
     m_local_alignments.push_back("\n"  + x2 + "\n" + a + "\n" + x1 + "\n");
 }
 
