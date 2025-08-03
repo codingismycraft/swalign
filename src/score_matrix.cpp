@@ -209,7 +209,7 @@ std::string ScoreMatrix::toString() const {
             oss << std::setw(width) << m_sequence2[row - 1];
         }
         // Print all matrix columns for this row
-        for (int col = 0; col < getRowCount() - 1; ++col) {
+        for (int col = 0; col < getColCount() ; ++col) {
             oss << "|" << std::setw(width) << getMatrixValue(row, col, getColCount(), m_matrix);
         }
         oss << "\n" << separator;
