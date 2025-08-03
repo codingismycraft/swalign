@@ -242,7 +242,7 @@ int LocalAlignmentFinder::getColCount() const {
 
 int LocalAlignmentFinder::getScore(int row, int col) const {
     if (row < 0 || row >= m_rows || col < 0 || col >= m_cols) {
-        throw std::out_of_range("Row or column index out of bounds");
+        throw std::out_of_range("Row or column index out of bounds: " + std::to_string(row) + ", " + std::to_string(col));
     }
     const int index = row * m_cols + col;
     return m_matrix[index];
@@ -297,7 +297,7 @@ std::string LocalAlignmentFinder::toString() const {
             oss << std::setw(width) << m_sequence2[row - 1];
         }
         // Print all matrix columns for this row
-        for (int col = 0; col < getRowCount(); ++col) {
+        for (int col = 0; col < getRowCount()-1; ++col) {
             oss << "|" << std::setw(width) << getScore(row, col);
         }
         oss << "\n" << separator;
