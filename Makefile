@@ -103,7 +103,7 @@ test_big_array: $(BIN_DIR)/test_big_array
 
 $(BIN_DIR)/swalign: ./headers/score_matrix.h $(OBJDIR)/score_matrix.o $(OBJDIR)/utils.o $(OBJDIR)/swalign.o
 	@mkdir -p $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(BIN_DIR)/swalign $(OBJDIR)/score_matrix.o $(OBJDIR)/utils.o $(OBJDIR)/swalign.o
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJDIR)/score_matrix.o $(OBJDIR)/utils.o $(OBJDIR)/swalign.o
 
 
 swalign: $(BIN_DIR)/swalign
