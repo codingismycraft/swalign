@@ -259,7 +259,7 @@ void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, st
             }
         }
 
-        if (valid_diagonal && getScore(diagonal_row, diagonal_col) + m_mismatch_penalty == current_score) {
+        if (!same_char && valid_diagonal && getScore(diagonal_row, diagonal_col) + m_mismatch_penalty == current_score) {
             if (!already_moved) {
                 a = '|' + a_coming_in;
                 x1 = m_sequence1[col_coming_in - 1] + x1_coming_in;
