@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
 
         const std::string expected_str = laf.toString();
 
-        // std::cout << expected_str << std::endl;
+        std::cout << expected_str << std::endl;
         std::cout << laf << std::endl;
 
         return 0;

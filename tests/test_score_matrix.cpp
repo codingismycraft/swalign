@@ -111,11 +111,24 @@ void test5(){
 }
 
 
+void test6(){
+    const std::string s1 = "GTCTAC";
+    const std::string s2 = "TCTCGAT";
+
+    ScoreMatrix scoreMatrix(s1, s2, 2, -1, -1);
+
+    const std::string expected_str = scoreMatrix.toString();
+
+    std::cout << expected_str << std::endl;
+    std::cout << scoreMatrix << std::endl;
+}
+
 int main(){
     //testScoreMatrix();
-    test2();
+    //test2();
     //test3();
     //test4();
     //test5();
+    test6();
 }
 
