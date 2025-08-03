@@ -122,10 +122,36 @@ void ScoreMatrix::initializeMatrix() {
         processDiagonal(last_col, row);
     }
 
-     for (const auto& pos : m_max_positions) {
+    findMaxScores();
+
+    for (const auto& pos : m_max_positions) {
         traceback(pos.first, pos.second, "", "", "");
     }
 }
+
+void ScoreMatrix::findMaxScores() {
+    int current_max = -1;
+    m_max_positions.clear();
+
+    const int cols = getColCount();
+    const int rows = getRowCount();
+
+    for (int row = 0; row < rows; row++) {
+        for (int col = 0; col < cols; col++) {
+            const int value = m_matrix[row * cols + col];
+            if (value > current_max) {
+                m_max_positions.clear();
+            }
+            if (value >= current_max) {
+                current_max = value;
+                m_max_positions.push_back(std::make_pair(row, col));
+            }
+        }
+    }
+
+    m_max_score = current_max;
+}
+
 
 void ScoreMatrix::processDiagonal(int col, int starting_row){
     assert (col >= 0 && col < getColCount() && "Column index out of bounds");
@@ -140,15 +166,6 @@ void ScoreMatrix::processDiagonal(int col, int starting_row){
         const int score_left = left_value + m_gap_penalty;
 
         const int score = std::max({score_diagonal, score_up, score_left, 0});
-
-        if (score > m_max_score) {
-            m_max_positions.clear();
-        }
-
-        if (score >= m_max_score) {
-            m_max_score = score;
-            m_max_positions.push_back(std::make_pair(row, col));
-        }
 
         setMatrixValue(score, row, col, getColCount(), m_matrix);
 
@@ -309,7 +326,29 @@ void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, st
        assert (row < row_coming_in || col < col_coming_in);
     }
 
+    a = a + " " + std::to_string(evaluateScore(a));
+
     m_local_alignments.push_back("\n"  + x2 + "\n" + a + "\n" + x1 + "\n");
+}
+
+int32_t ScoreMatrix::evaluateScore(const std::string& alighmentStr) const {
+    int starCount = 0;
+    int pipeCount = 0;
+    int spaceCount = 0;
+
+    for (char ch : alighmentStr) {
+        if (ch == '*') {
+            ++starCount;
+        } else if (ch == '|') {
+            ++pipeCount;
+        } else if (ch == ' ') {
+            ++spaceCount;
+        }
+    }
+
+    return starCount * m_match_score +
+           pipeCount * m_mismatch_penalty +
+           spaceCount * m_gap_penalty;
 }
 
 
@@ -359,8 +398,6 @@ std::ostream& operator<<(std::ostream& os, const ScoreMatrix& obj) {
     os << "Seq1: " << obj.getSequence1() << std::endl;
     os << "Seq2: " << obj.getSequence2() << std::endl;
 
-    os << "\nNumber of Alignments ..: " << obj.getNumberOfAlignments()<< std::endl;
-    os << "Max score .............: " << obj.getMaxScore()<< std::endl;
 
     int counter = 1;
     os << "\n--------------------------" << std::endl;
@@ -369,6 +406,9 @@ std::ostream& operator<<(std::ostream& os, const ScoreMatrix& obj) {
          os << aln << std::endl;
          os << "--------------------------" << std::endl;
     }
+
+    os << "\nNumber of Alignments ..: " << obj.getNumberOfAlignments()<< std::endl;
+    os << "Max score .............: " << obj.getMaxScore()<< std::endl;
     return os;
 }
 

@@ -47,6 +47,7 @@ class LocalAlignmentFinder {
         void processDiagonal(int col, int starting_row);
         int count_anti_diagonal_cells(int anti_diagonal_index);
         void findMaxScores();
+        int32_t evaluateScore(const std::string& alighmentStr) const;
 
     private:
         // Passed from the user.

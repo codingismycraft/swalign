@@ -10,6 +10,9 @@ tags
 *.o
 *.obj
 *.bin
+*.vim
+junk*
+
 
 
 # Precompiled Headers

@@ -133,6 +133,7 @@ int LocalAlignmentFinder::count_anti_diagonal_cells(int anti_diagonal_index) {
 
 void LocalAlignmentFinder::initializeMatrix() {
     // Allocate device memory
+    m_max_score = 0;
     char *d_strA, *d_strB;
     cudaMalloc((void**)&d_strA, m_rows + 1);
     cudaMalloc((void**)&d_strB, m_cols + 1);
@@ -205,6 +206,9 @@ void LocalAlignmentFinder::findMaxScores() {
     for (int row = 0; row < m_rows; row++) {
         for (int col = 0; col < m_cols; col++) {
             const int value = m_matrix[row * m_cols + col];
+            if (value > 17) {
+                continue; // Skip negative values
+            }
             if (value > current_max) {
                 m_max_positions.clear();
             }
@@ -214,6 +218,8 @@ void LocalAlignmentFinder::findMaxScores() {
             }
         }
     }
+
+    m_max_score = current_max;
 }
 
 const std::string& LocalAlignmentFinder::getSequence1() const{
@@ -245,6 +251,16 @@ int LocalAlignmentFinder::getScore(int row, int col) const {
 const std::vector<std::string>& LocalAlignmentFinder::getLocalAlignments() const {
     return m_local_alignments;
 }
+
+
+size_t LocalAlignmentFinder::getNumberOfAlignments() const {
+    return m_local_alignments.size();
+}
+
+int LocalAlignmentFinder::getMaxScore() const {
+    return m_max_score;
+}
+
 
 std::string LocalAlignmentFinder::toString() const {
     std::ostringstream oss;
@@ -398,8 +414,31 @@ void LocalAlignmentFinder::traceback(int row, int col, std::string x1, std::stri
        assert (row < row_coming_in || col < col_coming_in);
     }
 
+    a = a + " " + std::to_string(evaluateScore(a));
+
     m_local_alignments.push_back("\n"  + x2 + "\n" + a + "\n" + x1 + "\n");
 }
+
+int32_t LocalAlignmentFinder::evaluateScore(const std::string& alighmentStr) const {
+    int starCount = 0;
+    int pipeCount = 0;
+    int spaceCount = 0;
+
+    for (char ch : alighmentStr) {
+        if (ch == '*') {
+            ++starCount;
+        } else if (ch == '|') {
+            ++pipeCount;
+        } else if (ch == ' ') {
+            ++spaceCount;
+        }
+    }
+
+    return starCount * m_match_score +
+           pipeCount * m_mismatch_penalty +
+           spaceCount * m_gap_penalty;
+}
+
 
 
 
@@ -408,8 +447,8 @@ std::ostream& operator<<(std::ostream& os, const LocalAlignmentFinder& obj) {
     os << "Seq1: " << obj.getSequence1() << std::endl;
     os << "Seq2: " << obj.getSequence2() << std::endl;
 
-    //os << "\nNumber of Alignments ..: " << obj.getNumberOfAlignments()<< std::endl;
-    //os << "Max score .............: " << obj.getMaxScore()<< std::endl;
+    os << "\nNumber of Alignments ..: " << obj.getNumberOfAlignments()<< std::endl;
+    os << "Max score .............: " << obj.getMaxScore()<< std::endl;
 
     int counter = 1;
     os << "\n--------------------------" << std::endl;

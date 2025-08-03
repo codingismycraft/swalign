@@ -67,6 +67,8 @@ class ScoreMatrix {
         void initializeMatrix();
         void traceback(int row, int col, std::string x1, std::string x2, std::string a);
         void processDiagonal(int col, int starting_row);
+        void findMaxScores();
+        int32_t evaluateScore(const std::string& alighmentStr) const;
 
     private:
         // Passed from the user.
