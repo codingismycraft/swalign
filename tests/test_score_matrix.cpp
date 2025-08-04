@@ -112,8 +112,8 @@ void test5(){
 
 
 void test6(){
-    const std::string s1 = "GTCTAC";
-    const std::string s2 = "TCTCGAT";
+    const std::string s1 = "AATCGGGGGGGGG";
+    const std::string s2 = "AACGAAAAGGGGGGG";
 
     ScoreMatrix scoreMatrix(s1, s2, 2, -1, -1);
 

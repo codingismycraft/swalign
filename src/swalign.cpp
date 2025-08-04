@@ -38,6 +38,7 @@
  **************************************************************************
  */
 
+#include "score_matrix.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -45,7 +46,14 @@
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
-#include "score_matrix.h"
+#include <string>
+#include <algorithm>
+#include <cctype>
+#include <assert.h>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <algorithm>
 
 // Prints help message for command-line usage
 void print_help(const char* progname) {
@@ -69,26 +77,18 @@ void print_help(const char* progname) {
         << std::endl;
 }
 
-// Utility function to read sequence from a text file, skipping whitespace
 std::string read_sequence_from_file(const std::string& filename) {
     std::ifstream file(filename);
-    if (!file) {
-        std::cerr << "Error: File '" << filename << "' does not exist or cannot be opened." << std::endl;
-        exit(1);
-    }
-    std::string sequence, line;
-    while (std::getline(file, line)) {
-        if (line.empty() || line[0] == '>') {
-            // Skip empty lines and comment lines starting with '>'
-            continue;
-        }
-        for (char c : line) {
-            if (!isspace(static_cast<unsigned char>(c))) {
-                sequence += c;
-            }
-        }
-    }
-    return sequence;
+    if (!file) throw std::runtime_error("Unable to open file: " + filename);
+    std::ostringstream ss;
+    ss << file.rdbuf();
+    std::string content = ss.str();
+
+    // Remove all whitespace and non-alphabetic characters
+    content.erase(std::remove_if(content.begin(), content.end(),
+        [](unsigned char c) { return !std::isalpha(c); }), content.end());
+
+    return content;
 }
 
 // Clamp a value between min and max inclusive
@@ -96,6 +96,22 @@ int clamp(int value, int min, int max) {
     if (value < min) return min;
     if (value > max) return max;
     return value;
+}
+
+std::string strip(const std::string& s) {
+    auto start = std::find_if_not(s.begin(), s.end(), ::isspace);
+    auto end = std::find_if_not(s.rbegin(), s.rend(), ::isspace).base();
+    if (start >= end) return ""; // All spaces or empty string
+    return std::string(start, end);
+}
+
+std::string clean_sequence(const std::string& s) {
+    std::string result;
+    for (char c : s) {
+        if (c == 'A' || c == 'C' || c == 'G' || c == 'T') // Only DNA bases
+            result += c;
+    }
+    return result;
 }
 
 int main(int argc, char* argv[]) {
@@ -157,12 +173,15 @@ int main(int argc, char* argv[]) {
     }
 
     // Read sequences from files, asserting file existence
-    std::string seq1 = read_sequence_from_file(seq1_file);
-    std::string seq2 = read_sequence_from_file(seq2_file);
+    const std::string seq1 = clean_sequence(read_sequence_from_file(seq1_file));
+    const std::string seq2 = clean_sequence(read_sequence_from_file(seq2_file));
+    //const std::string seq1 = "AATCGGGGGGGGG";
+    //const std::string seq2 = "AACGAAAAGGGGGGG";
 
-    // Create ScoreMatrix instance and compute local alignments
-    ScoreMatrix scoreMatrix(seq1, seq2, match_score, mismatch_penalty, gap_penalty, 120000 );
 
+    std::cout << "seq1: " << seq1 << std::endl;
+    std::cout << "seq2: " << seq2 << std::endl;
+    ScoreMatrix scoreMatrix(seq1, seq2, match_score, mismatch_penalty, gap_penalty, 10 );
     std::cout << scoreMatrix << std::endl;
 
     return 0;

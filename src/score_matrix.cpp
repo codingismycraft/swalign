@@ -34,17 +34,20 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <iostream>
+
 
 namespace {
 
-    inline int getMatrixValue(const int row, const int col, const int col_count, const int* matrix) {
-        return matrix[row * col_count + col];
-    }
-
-    inline void setMatrixValue(const int value, const int row, const int col, const int col_count, int* matrix) {
-        matrix[row * col_count + col] = value;
-    }
+inline int getMatrixValue(const int row, const int col, const int col_count, const int* matrix) {
+    return matrix[row * col_count + col];
 }
+
+inline void setMatrixValue(const int value, const int row, const int col, const int col_count, int* matrix) {
+    matrix[row * col_count + col] = value;
+}
+
+};
 
 
 
@@ -60,7 +63,14 @@ ScoreMatrix::ScoreMatrix( const std::string& s1, const std::string& s2,
             m_max_score(0)
 
 {
-    m_matrix = new int[(s1.length() + 1) * (s2.length() + 1)];
+    std::cout << "Initializing ScoreMatrix for sequences: " << s1 << " and " << s2 << std::endl << s1.size() << " " << s2.size() << std::endl;
+    std::cout << "Match score: " << m_match_score
+              << ", Mismatch penalty: " << m_mismatch_penalty
+              << ", Gap penalty: " << m_gap_penalty
+              << ", Max alignments: " << m_max_alignments
+              << "----------------------------------- " << std::endl;
+
+    m_matrix = new int[(s1.length() + 1) * (s2.length() + 1)]();
     initializeMatrix();
 }
 
@@ -219,6 +229,8 @@ std::string ScoreMatrix::toString() const {
 }
 
 void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, std::string a) {
+    std::cout << "Traceback called with row: " << row << ", col: " << col << " "
+              << "x1: " << x1 << ", x2: " << x2 << ", a: " << a << std::endl;
 
     while(row >=0 && col >=0 && getScore(row, col) > 0) {
         if (m_local_alignments.size() >= m_max_alignments)
@@ -324,7 +336,14 @@ void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, st
             }
         }
 
+        if (!already_moved) {
+            std::cerr << "Traceback error: no valid move found at row " << row
+                      << ", col " << col << ". Current score: " << current_score << std::endl;
+        }
+
        assert(already_moved && "Traceback logic error");
+
+        // Ensure we are not going out of bounds
        assert (row < row_coming_in || col < col_coming_in);
     }
     a = a + " " + std::to_string(evaluateScore(a));
