@@ -107,8 +107,8 @@ std::string strip(const std::string& s) {
 
 std::string clean_sequence(const std::string& s) {
     std::string result;
-    for (char c : s) {
-        if (c == 'A' || c == 'C' || c == 'G' || c == 'T') // Only DNA bases
+    for (char c: s) {
+        if (c >= 33 && c <= 126)
             result += c;
     }
     return result;
@@ -175,12 +175,6 @@ int main(int argc, char* argv[]) {
     // Read sequences from files, asserting file existence
     const std::string seq1 = clean_sequence(read_sequence_from_file(seq1_file));
     const std::string seq2 = clean_sequence(read_sequence_from_file(seq2_file));
-    //const std::string seq1 = "AATCGGGGGGGGG";
-    //const std::string seq2 = "AACGAAAAGGGGGGG";
-
-
-    std::cout << "seq1: " << seq1 << std::endl;
-    std::cout << "seq2: " << seq2 << std::endl;
     ScoreMatrix scoreMatrix(seq1, seq2, match_score, mismatch_penalty, gap_penalty, 10 );
     std::cout << scoreMatrix << std::endl;
 
