@@ -441,12 +441,19 @@ int32_t LocalAlignmentFinder::evaluateScore(const std::string& alighmentStr) con
 }
 
 
+std::string format_with_commas(long long value) {
+    std::string num = std::to_string(value);
+    int insertPosition = num.length() - 3;
+    while (insertPosition > 0) {
+        num.insert(insertPosition, ",");
+        insertPosition -= 3;
+    }
+    return num;
+}
 
 
 std::ostream& operator<<(std::ostream& os, const LocalAlignmentFinder& obj) {
     os << "\n***************************************" << std::endl;
-    os << "\nNumber of Alignments ..: " << obj.getNumberOfAlignments()<< std::endl;
-    os << "Max score .............: " << obj.getMaxScore()<< std::endl;
 
     int counter = 1;
     os << "\n--------------------------" << std::endl;
@@ -455,6 +462,16 @@ std::ostream& operator<<(std::ostream& os, const LocalAlignmentFinder& obj) {
          os << aln << std::endl;
          os << "--------------------------" << std::endl;
     }
+
+    const auto x = format_with_commas(obj.getRowCount() * obj.getColCount());
+
+    std::ostringstream oss;
+    oss << "Matrix Size: " << obj.getRowCount() << " X " << obj.getColCount() << " = " << x << " elements" << std::endl;
+    std::string output = oss.str();
+    std::cout << output << std::endl;
+
+    os << "\nNumber of Alignments ..: " << obj.getNumberOfAlignments()<< std::endl;
+    os << "Max score .............: " << obj.getMaxScore()<< std::endl;
     return os;
 }
 
