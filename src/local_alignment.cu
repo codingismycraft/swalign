@@ -90,17 +90,17 @@ __global__ void update_cell_in_diagonal(
 
 
 // Implementation of LocalAlignment class.
-LocalAlignmentFinder::LocalAlignmentFinder( const std::string& s1, const std::string& s2,
+LocalAlignmentFinder::LocalAlignmentFinder( const std::string& horizontal_seq, const std::string& vertical_seq,
         int match_score, int mismatch_penalty, int gap_penalty, size_t max_alignments):
-            m_sequence1(s1),
-            m_sequence2(s2),
+            m_horizontal_seq(horizontal_seq),
+            m_vertical_seq(vertical_seq),
             m_match_score(match_score),
             m_mismatch_penalty(mismatch_penalty),
             m_gap_penalty(gap_penalty),
             m_max_alignments(max_alignments),
             m_max_score(0),
-            m_rows(s2.length()+1),
-            m_cols(s1.length()+1),
+            m_rows(vertical_seq.length()+1),
+            m_cols(horizontal_seq.length()+1),
             m_matrix_size(long(m_rows) * m_cols* sizeof(int))
 {
     std::cout << "LocalAlignmentFinder initialized with sequences of lengths: "
@@ -139,8 +139,8 @@ void LocalAlignmentFinder::initializeMatrix() {
     cudaMalloc((void**)&d_strB, m_cols + 1);
 
     // Copy strings to device
-    cudaMemcpy(d_strA, m_sequence1.c_str(), m_rows + 1, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_strB, m_sequence2.c_str(), m_cols + 1, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_strA, m_horizontal_seq.c_str(), m_rows + 1, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_strB, m_vertical_seq.c_str(), m_cols + 1, cudaMemcpyHostToDevice);
 
     // Allocate memory on the GPU
     int* d_a;
@@ -223,12 +223,12 @@ void LocalAlignmentFinder::findMaxScores() {
 }
 
 const std::string& LocalAlignmentFinder::getSequence1() const{
-    return m_sequence1;
+    return m_horizontal_seq;
 }
 
 
 const std::string& LocalAlignmentFinder::getSequence2() const {
-    return m_sequence2;
+    return m_vertical_seq;
 }
 
 
@@ -279,22 +279,22 @@ std::string LocalAlignmentFinder::toString() const {
     // Print top separator
     oss << separator;
 
-    // Print header row: empty cell, then m_sequence1 characters as column headers
+    // Print header row: empty cell, then m_horizontal_seq characters as column headers
     oss << std::setw(width) << ' ';
 
     oss << "|" << std::setw(width) << ' ';
     for (int col = 0; col < getColCount()-1; ++col) {
-        oss << "|" << std::setw(width) << m_sequence1[col];
+        oss << "|" << std::setw(width) << m_horizontal_seq[col];
     }
     oss << "\n" << separator;
 
     // Print all matrix rows
     for (int row = 0; row < getRowCount(); ++row) {
-        // First column: empty for first row, else m_sequence2 character
+        // First column: empty for first row, else m_vertical_seq character
         if (row == 0) {
             oss << std::setw(width) << ' ';
         } else {
-            oss << std::setw(width) << m_sequence2[row - 1];
+            oss << std::setw(width) << m_vertical_seq[row - 1];
         }
         // Print all matrix columns for this row
         for (int col = 0; col < getColCount(); ++col) {
@@ -330,13 +330,13 @@ void LocalAlignmentFinder::traceback(int row, int col, std::string x1, std::stri
 
         bool already_moved = false;
 
-        const bool same_char = (m_sequence1[col-1] == m_sequence2[row-1]);
+        const bool same_char = (m_horizontal_seq[col-1] == m_vertical_seq[row-1]);
 
         if (same_char && valid_diagonal && getScore(diagonal_row, diagonal_col) + m_match_score == current_score) {
             if (!already_moved) {
                 a = '*' + a_coming_in;
-                x1 = m_sequence1[col_coming_in - 1] + x1_coming_in;
-                x2 = m_sequence2[row_coming_in  - 1] + x2_coming_in;
+                x1 = m_horizontal_seq[col_coming_in - 1] + x1_coming_in;
+                x2 = m_vertical_seq[row_coming_in  - 1] + x2_coming_in;
                 row = diagonal_row;
                 col = diagonal_col;
                 already_moved = true;
@@ -349,8 +349,8 @@ void LocalAlignmentFinder::traceback(int row, int col, std::string x1, std::stri
         if (!same_char && valid_diagonal && getScore(diagonal_row, diagonal_col) + m_mismatch_penalty == current_score) {
             if (!already_moved) {
                 a = '|' + a_coming_in;
-                x1 = m_sequence1[col_coming_in - 1] + x1_coming_in;
-                x2 = m_sequence2[row_coming_in  - 1] + x2_coming_in;
+                x1 = m_horizontal_seq[col_coming_in - 1] + x1_coming_in;
+                x2 = m_vertical_seq[row_coming_in  - 1] + x2_coming_in;
                 row = diagonal_row;
                 col = diagonal_col;
                 already_moved = true;
@@ -360,8 +360,8 @@ void LocalAlignmentFinder::traceback(int row, int col, std::string x1, std::stri
                     traceback(
                         diagonal_row,
                         diagonal_col,
-                        m_sequence1[col_coming_in - 1] + x1_coming_in,
-                        m_sequence2[row_coming_in  - 1] + x2_coming_in,
+                        m_horizontal_seq[col_coming_in - 1] + x1_coming_in,
+                        m_vertical_seq[row_coming_in  - 1] + x2_coming_in,
                         '|' + a_coming_in
                    );
                }
@@ -373,7 +373,7 @@ void LocalAlignmentFinder::traceback(int row, int col, std::string x1, std::stri
             if (!already_moved) {
                 a = ' ' + a;
                 x1 = '_' + x1;
-                x2= m_sequence2[row_coming_in  - 1] + x2;
+                x2= m_vertical_seq[row_coming_in  - 1] + x2;
                 row -= 1;
                 already_moved = true;
             }
@@ -383,7 +383,7 @@ void LocalAlignmentFinder::traceback(int row, int col, std::string x1, std::stri
                         row_coming_in  - 1,
                         col_coming_in,
                         '_' + x1_coming_in,
-                        m_sequence2[row_coming_in  - 1] + x2_coming_in,
+                        m_vertical_seq[row_coming_in  - 1] + x2_coming_in,
                         ' ' + a_coming_in
                    );
                 }
@@ -393,7 +393,7 @@ void LocalAlignmentFinder::traceback(int row, int col, std::string x1, std::stri
         if (valid_up_col && getScore(row_coming_in, col_coming_in  - 1) + m_gap_penalty == current_score) {
             if (!already_moved) {
                 a = ' ' + a;
-                x1 = m_sequence1[col - 1] + x1;
+                x1 = m_horizontal_seq[col - 1] + x1;
                 x2 = '_' + x2;
                 col  -= 1;
                 already_moved = true;
@@ -403,7 +403,7 @@ void LocalAlignmentFinder::traceback(int row, int col, std::string x1, std::stri
                     traceback(
                         row_coming_in,
                         col_coming_in  - 1,
-                        m_sequence1[col_coming_in - 1] + x1_coming_in,
+                        m_horizontal_seq[col_coming_in - 1] + x1_coming_in,
                         '_' + x2_coming_in,
                         ' ' + a_coming_in
                    );

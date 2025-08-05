@@ -11,8 +11,8 @@ class LocalAlignmentFinder {
 
     public:
         LocalAlignmentFinder(
-                const std::string& s1,
-                const std::string& s2,
+                const std::string& horizontal_seq,
+                const std::string& vertical_seq,
                 int match_score,
                 int mismatch_penalty,
                 int gap_penalty,
@@ -51,8 +51,8 @@ class LocalAlignmentFinder {
 
     private:
         // Passed from the user.
-        const std::string m_sequence1;
-        const std::string m_sequence2;
+        const std::string m_horizontal_seq;
+        const std::string m_vertical_seq;
         const int m_rows;
         const int m_cols;
         const int m_match_score;
