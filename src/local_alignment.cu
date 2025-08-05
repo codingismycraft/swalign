@@ -103,8 +103,7 @@ LocalAlignmentFinder::LocalAlignmentFinder( const std::string& horizontal_seq, c
             m_cols(horizontal_seq.length()+1),
             m_matrix_size(long(m_rows) * m_cols* sizeof(int))
 {
-    std::cout << "LocalAlignmentFinder initialized with sequences of lengths: "
-              << m_rows << " and " << m_matrix_size << std::endl;
+
     if (m_matrix_size <= 0) {
         throw std::invalid_argument("value must be non-negative");
     }
@@ -134,16 +133,19 @@ int LocalAlignmentFinder::count_anti_diagonal_cells(int anti_diagonal_index) {
 void LocalAlignmentFinder::initializeMatrix() {
     // Allocate device memory
     m_max_score = 0;
-    char *d_strA, *d_strB;
-    cudaMalloc((void**)&d_strA, m_rows + 1);
-    cudaMalloc((void**)&d_strB, m_cols + 1);
+
+    char *d_horizontal_seq = nullptr;
+    char *d_vertical_seq = nullptr;
+
+    cudaMalloc((void**)&d_horizontal_seq, m_cols + 1);
+    cudaMalloc((void**)&d_vertical_seq, m_rows + 1);
 
     // Copy strings to device
-    cudaMemcpy(d_strA, m_horizontal_seq.c_str(), m_rows + 1, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_strB, m_vertical_seq.c_str(), m_cols + 1, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_horizontal_seq, m_horizontal_seq.c_str(), m_cols, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_vertical_seq, m_vertical_seq.c_str(), m_rows, cudaMemcpyHostToDevice);
 
     // Allocate memory on the GPU
-    int* d_a;
+    int* d_a = nullptr;
 
     if (cudaMalloc((void**)&d_a, m_matrix_size) != cudaSuccess) {
         throw std::bad_alloc();
@@ -154,7 +156,7 @@ void LocalAlignmentFinder::initializeMatrix() {
         throw std::bad_alloc();
     }
 
-    for (int index = 1; index < m_cols + m_rows - 1;  index++) {
+    for (int index = 1; index < m_cols + m_rows - 1;  ++index) {
         const int count = count_anti_diagonal_cells(index);
         const int numBlocks = (count + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
         update_cell_in_diagonal<<<numBlocks, THREADS_PER_BLOCK>>>(
@@ -162,8 +164,8 @@ void LocalAlignmentFinder::initializeMatrix() {
                 index,
                 m_cols,
                 count,
-                d_strA,
-                d_strB,
+                d_horizontal_seq,
+                d_vertical_seq,
                 m_match_score,
                 m_mismatch_penalty,
                 m_gap_penalty
@@ -180,8 +182,8 @@ void LocalAlignmentFinder::initializeMatrix() {
 
     // Free the GPU memory
     cudaFree(d_a);
-    cudaFree(d_strA);
-    cudaFree(d_strB);
+    cudaFree(d_horizontal_seq);
+    cudaFree(d_vertical_seq);
 
     findMaxScores();
      for (const auto& pos : m_max_positions) {
@@ -206,9 +208,7 @@ void LocalAlignmentFinder::findMaxScores() {
     for (int row = 0; row < m_rows; row++) {
         for (int col = 0; col < m_cols; col++) {
             const int value = m_matrix[row * m_cols + col];
-            if (value > 17) {
-                continue; // Skip negative values
-            }
+
             if (value > current_max) {
                 m_max_positions.clear();
             }
@@ -222,12 +222,12 @@ void LocalAlignmentFinder::findMaxScores() {
     m_max_score = current_max;
 }
 
-const std::string& LocalAlignmentFinder::getSequence1() const{
+const std::string& LocalAlignmentFinder::getHorizontalSeq() const{
     return m_horizontal_seq;
 }
 
 
-const std::string& LocalAlignmentFinder::getSequence2() const {
+const std::string& LocalAlignmentFinder::getVerticalSeq() const {
     return m_vertical_seq;
 }
 
@@ -445,9 +445,6 @@ int32_t LocalAlignmentFinder::evaluateScore(const std::string& alighmentStr) con
 
 std::ostream& operator<<(std::ostream& os, const LocalAlignmentFinder& obj) {
     os << "\n***************************************" << std::endl;
-    os << "Seq1: " << obj.getSequence1() << std::endl;
-    os << "Seq2: " << obj.getSequence2() << std::endl;
-
     os << "\nNumber of Alignments ..: " << obj.getNumberOfAlignments()<< std::endl;
     os << "Max score .............: " << obj.getMaxScore()<< std::endl;
 

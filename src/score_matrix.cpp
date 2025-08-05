@@ -63,13 +63,6 @@ ScoreMatrix::ScoreMatrix( const std::string& s1, const std::string& s2,
             m_max_score(0)
 
 {
-    std::cout << "Initializing ScoreMatrix for sequences: " << s1 << " and " << s2 << std::endl << s1.size() << " " << s2.size() << std::endl;
-    std::cout << "Match score: " << m_match_score
-              << ", Mismatch penalty: " << m_mismatch_penalty
-              << ", Gap penalty: " << m_gap_penalty
-              << ", Max alignments: " << m_max_alignments
-              << "----------------------------------- " << std::endl;
-
     m_matrix = new int[(s1.length() + 1) * (s2.length() + 1)]();
     initializeMatrix();
 }
@@ -229,9 +222,6 @@ std::string ScoreMatrix::toString() const {
 }
 
 void ScoreMatrix::traceback(int row, int col, std::string x1, std::string x2, std::string a) {
-    std::cout << "Traceback called with row: " << row << ", col: " << col << " "
-              << "x1: " << x1 << ", x2: " << x2 << ", a: " << a << std::endl;
-
     while(row >=0 && col >=0 && getScore(row, col) > 0) {
         if (m_local_alignments.size() >= m_max_alignments)
         {
@@ -414,8 +404,8 @@ std::string ScoreMatrix::getLocalAlignmentsAsJson() const {
 
 std::ostream& operator<<(std::ostream& os, const ScoreMatrix& obj) {
     os << "\n***************************************" << std::endl;
-    os << "Seq1: " << obj.getSequence1() << std::endl;
-    os << "Seq2: " << obj.getSequence2() << std::endl;
+    //os << "Seq1: " << obj.getSequence1() << std::endl;
+    //os << "Seq2: " << obj.getSequence2() << std::endl;
 
 
     int counter = 1;

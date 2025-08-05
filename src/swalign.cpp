@@ -53,6 +53,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <chrono>
 #include <algorithm>
 
 // Prints help message for command-line usage
@@ -175,8 +176,16 @@ int main(int argc, char* argv[]) {
     // Read sequences from files, asserting file existence
     const std::string seq1 = clean_sequence(read_sequence_from_file(seq1_file));
     const std::string seq2 = clean_sequence(read_sequence_from_file(seq2_file));
+
+    auto start = std::chrono::high_resolution_clock::now();
     ScoreMatrix scoreMatrix(seq1, seq2, match_score, mismatch_penalty, gap_penalty, 10 );
+    auto end = std::chrono::high_resolution_clock::now();
+
     std::cout << scoreMatrix << std::endl;
+
+    // Calculate duration
+    std::chrono::duration<double> duration = end - start;
+    std::cout << "Duration: " << duration.count() << " seconds" << std::endl;
 
     return 0;
 }

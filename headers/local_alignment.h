@@ -27,8 +27,8 @@ class LocalAlignmentFinder {
         LocalAlignmentFinder& operator=(LocalAlignmentFinder&&) = delete;
 
         // Accessors.
-        const std::string& getSequence1() const;
-        const std::string& getSequence2() const;
+        const std::string& getHorizontalSeq() const;
+        const std::string& getVerticalSeq() const;
         int getRowCount() const;
         int getColCount() const;
         int getScore(int row, int col) const; // throws std::out_of_range.
