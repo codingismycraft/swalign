@@ -1,6 +1,7 @@
 
 #include "local_alignment.h"
 
+#include <cstdlib>
 #include <sstream>
 #include <iostream>
 #include <stdexcept>
@@ -137,23 +138,49 @@ void LocalAlignmentFinder::initializeMatrix() {
     char *d_horizontal_seq = nullptr;
     char *d_vertical_seq = nullptr;
 
-    cudaMalloc((void**)&d_horizontal_seq, m_cols + 1);
-    cudaMalloc((void**)&d_vertical_seq, m_rows + 1);
+    if (cudaMalloc((void**)&d_horizontal_seq, m_cols + 1) != cudaSuccess) {
+        std::cerr << "Error allocating memory for horizontal sequence on GPU" << std::endl;
+        exit(1);
+    }
+
+
+    if (cudaMalloc((void**)&d_vertical_seq, m_rows + 1) != cudaSuccess) {
+        std::cerr << "Error allocating memory for vertical sequence on GPU" << std::endl;
+        cudaFree(d_horizontal_seq);
+        exit(1);
+    }
 
     // Copy strings to device
-    cudaMemcpy(d_horizontal_seq, m_horizontal_seq.c_str(), m_cols, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_vertical_seq, m_vertical_seq.c_str(), m_rows, cudaMemcpyHostToDevice);
+    if (cudaMemcpy(d_horizontal_seq, m_horizontal_seq.c_str(), m_cols, cudaMemcpyHostToDevice) != cudaSuccess) {
+        std::cerr << "Error copying horizontal sequence to GPU" << std::endl;
+        cudaFree(d_horizontal_seq);
+        cudaFree(d_vertical_seq);
+        exit(1);
+    }
+    if (cudaMemcpy(d_vertical_seq, m_vertical_seq.c_str(), m_rows, cudaMemcpyHostToDevice) != cudaSuccess) {
+        std::cerr << "Error copying vertical sequence to GPU" << std::endl;
+        cudaFree(d_horizontal_seq);
+        cudaFree(d_vertical_seq);
+        exit(1);
+    }
 
     // Allocate memory on the GPU
     int* d_a = nullptr;
 
     if (cudaMalloc((void**)&d_a, m_matrix_size) != cudaSuccess) {
-        throw std::bad_alloc();
+        std::cerr << "Error allocating memory for matrix on GPU" << std::endl;
+        cudaFree(d_horizontal_seq);
+        cudaFree(d_vertical_seq);
+        exit(1);
     }
 
+
     if (cudaMemcpy(d_a, m_matrix, m_matrix_size, cudaMemcpyHostToDevice) != cudaSuccess) {
+        std::cerr << "Error copying matrix to GPU" << std::endl;
         cudaFree(d_a);
-        throw std::bad_alloc();
+        cudaFree(d_horizontal_seq);
+        cudaFree(d_vertical_seq);
+        exit(1);
     }
 
     for (int index = 1; index < m_cols + m_rows - 1;  ++index) {
@@ -176,8 +203,11 @@ void LocalAlignmentFinder::initializeMatrix() {
 
     // Copy the matrix from GPU to CPU
     if (cudaMemcpy(m_matrix, d_a, m_matrix_size, cudaMemcpyDeviceToHost) != cudaSuccess) {
+        std::cerr << "Error copying matrix from GPU" << std::endl;
         cudaFree(d_a);
-        throw std::bad_alloc();
+        cudaFree(d_horizontal_seq);
+        cudaFree(d_vertical_seq);
+        exit(1);
     }
 
     // Free the GPU memory

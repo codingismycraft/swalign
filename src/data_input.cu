@@ -43,8 +43,6 @@ std::string read_sequence_from_file(const std::string& filename) {
     std::string sequence, line;
     while (std::getline(file, line)) {
         if (line.empty() || line[0] == '>') {
-            // Skip empty lines and comment lines starting with '>'
-            std::cout << "Skipping line: " << line << std::endl;
             continue;
         }
         for (char c : line) {
