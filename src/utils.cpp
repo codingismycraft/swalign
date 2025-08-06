@@ -2,7 +2,10 @@
 #include <sstream>
 #include <string>
 #include <algorithm>
+#include <random>
 #include <cctype>
+
+#define RANDOM_NAME_LENGTH 8
 
 // Helper function to trim both ends of a string
 static inline std::string trim(const std::string& s) {
@@ -36,4 +39,21 @@ std::string readFastaSequence(const std::string& fasta_path) {
         }
     }
     return sequence;
+}
+
+
+std::string generate_random_name(){
+    const std::string chars =
+        "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "0123456789";
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(0, chars.size() - 1);
+
+    std::string name;
+    for (int i = 0; i < RANDOM_NAME_LENGTH; ++i) {
+        name += chars[distrib(gen)];
+    }
+    return name + "-bigarray.bin";
 }

@@ -33,4 +33,7 @@
  */
 std::string readFastaSequence(const std::string& fasta_path);
 
+
+std::string generate_random_name();
+
 #endif // __SWALIGN_UTILS_INCLUDED__
