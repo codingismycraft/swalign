@@ -93,9 +93,9 @@ test_utils: $(BIN_DIR)/test_utils
 	$(BIN_DIR)/test_utils
 
 
-$(BIN_DIR)/test_big_array: ./headers/big_array.h $(OBJDIR)/big_array.o $(TEST_DIR)/test_big_array.cpp
+$(BIN_DIR)/test_big_array: ./headers/big_array.h $(OBJDIR)/utils.o $(OBJDIR)/big_array.o $(TEST_DIR)/test_big_array.cpp
 	@mkdir -p $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJDIR)/big_array.o $(TEST_DIR)/test_big_array.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJDIR)/utils.o $(OBJDIR)/big_array.o $(TEST_DIR)/test_big_array.cpp
 
 
 test_big_array: $(BIN_DIR)/test_big_array

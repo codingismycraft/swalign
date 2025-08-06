@@ -1,4 +1,5 @@
 #include "big_array.h"
+#include "utils.h"
 #include <cstddef> // for size_t
 #include <cstring>
 #include <fcntl.h>
@@ -7,7 +8,10 @@
 
 constexpr size_t HEADER_SIZE = sizeof(size_t) * 2;
 
-std::unique_ptr<BigArray> BigArray::make_new(const std::string& filename, size_t rows, size_t cols) {
+#define BASE_DIR "/tmp/"
+
+std::unique_ptr<BigArray> BigArray::make_new(size_t rows, size_t cols) {
+    const std::string filename = std::string(BASE_DIR) + generate_random_name();
     auto big_array = std::unique_ptr<BigArray>(new BigArray());
     big_array->create_new(filename, rows, cols);
     if (big_array->m_fd == -1) {

@@ -2,15 +2,15 @@
 //
 #include <assert.h>
 #include <iostream>
+#include <string>
 #include "big_array.h"
 
-#define TESTING_FILE_NAME "test_file.bin"
 #define ROWS 50
 #define COLS 50
 
 
-void create_file() {
-    auto p_big_array = BigArray::make_new(TESTING_FILE_NAME, ROWS, COLS);
+std::string create_file() {
+    auto p_big_array = BigArray::make_new(ROWS, COLS);
     for (size_t row = 0; row < ROWS; ++row) {
         for (size_t col = 0; col < COLS; ++col) {
             p_big_array->set( row, col, row * COLS + col);
@@ -23,11 +23,12 @@ void create_file() {
             assert(retrieved == expected);
         }
     }
+    return p_big_array->get_filename();
 }
 
 
-void read_file() {
-    auto p_big_array = BigArray::load(TESTING_FILE_NAME);
+void read_file(const std::string& filename) {
+    auto p_big_array = BigArray::load(filename);
 
     for (size_t row = 0; row < ROWS; ++row) {
         for (size_t col = 0; col < COLS; ++col) {
@@ -40,7 +41,7 @@ void read_file() {
 
 
 int main(){
-    create_file();
-    read_file();
+    auto filename = create_file();
+    read_file(filename);
     std::cout << "BigArray: all tests passed!" << std::endl;
 }

@@ -23,7 +23,7 @@
 class BigArray{
 
     public:
-        static std::unique_ptr<BigArray> make_new(const std::string& filename, size_t rows, size_t  cols);
+        static std::unique_ptr<BigArray> make_new(size_t rows, size_t  cols);
         static std::unique_ptr<BigArray> load(const std::string& filename);
 
         ~BigArray();
