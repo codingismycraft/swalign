@@ -39,9 +39,31 @@ void read_file(const std::string& filename) {
     }
 }
 
+void test_antidiagonals() {
+    size_t rows = 2;
+    size_t cols = 3;
+
+    auto p_big_array = BigArray::make_new(rows, cols);
+
+    assert(p_big_array->antidiagonals_count() == 4);
+
+    assert(p_big_array->antidiagonal_size(0) == 1);
+    assert(p_big_array->antidiagonal_size(1) == 2);
+    assert(p_big_array->antidiagonal_size(2) == 2);
+    assert(p_big_array->antidiagonal_size(3) == 1);
+
+    try {
+        p_big_array->antidiagonal_size(4);
+        assert(false); // Should not reach here
+    } catch (const std::out_of_range&) {
+        std::cout << "Antidiagonal index out of bounds caught as expected." << std::endl;
+    }
+}
+
 
 int main(){
     auto filename = create_file();
     read_file(filename);
+    test_antidiagonals();
     std::cout << "BigArray: all tests passed!" << std::endl;
 }

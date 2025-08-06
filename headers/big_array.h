@@ -30,6 +30,8 @@ class BigArray{
 
         int32_t get(size_t row, size_t col) const;
         void set(size_t row, size_t col, int value);
+        size_t antidiagonal_size(size_t antidiagonal_index) const;
+        size_t antidiagonals_count() const;
         const std::string& get_filename() const;
     private:
         BigArray();

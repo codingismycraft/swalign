@@ -41,6 +41,28 @@ BigArray::BigArray() :
 {
 }
 
+size_t BigArray::antidiagonals_count() const{
+    if (m_rows == 0 || m_cols == 0) {
+        return 0;
+    }
+    return m_rows + m_cols - 1;
+}
+
+size_t BigArray::antidiagonal_size(size_t antidiagonal_index) const {
+    if (antidiagonal_index >= antidiagonals_count()) {
+        throw std::out_of_range("Antidiagonal index out of bounds");
+    }
+    const size_t min_dim = std::min(m_rows, m_cols);
+    const size_t max_dim = std::max(m_rows, m_cols);
+
+    if (antidiagonal_index < min_dim) {
+        return antidiagonal_index + 1;
+    } else if (antidiagonal_index < max_dim) {
+        return min_dim;
+    } else {
+        return m_rows + m_cols - 1 - antidiagonal_index;
+    }
+}
 
 void BigArray::create_new(const std::string& filename, size_t rows, size_t cols)
 {
