@@ -17,7 +17,7 @@
 #   make test
 #
 #   Build and run tests in release mode
-#   make test BUILD=release
+#   make test BUILD=releas./e
 #
 #   Clean all binaries
 #   make clean
@@ -28,7 +28,7 @@
 CXX = g++
 SRC_DIR = ./src
 TEST_DIR = ./tests
-HEADERS =  -Iheaders -I${RAPIDJSON_HOME}
+HEADERS =  -I./headers -I${RAPIDJSON_HOME}
 
 CUDA_CXX = nvcc
 
@@ -66,6 +66,11 @@ clean:
 
 
 $(OBJDIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(OBJDIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+
+$(OBJDIR)/big_array.o: $(SRC_DIR)/big_array.cpp ./headers/big_array.h
 	@mkdir -p $(OBJDIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 

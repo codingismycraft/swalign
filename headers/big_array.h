@@ -16,41 +16,22 @@
 #define BIG_ARRAY_INCLUDED
 
 #include <string>
-#include <cstddef> // for size_t
+#include <cstddef>
 #include <memory>
 
-
-class BigArray{
+class IBigArray{
 
     public:
-        static std::unique_ptr<BigArray> make_new(size_t rows, size_t  cols);
-        static std::unique_ptr<BigArray> load(const std::string& filename);
-
-        ~BigArray();
-
-        int32_t get(size_t row, size_t col) const;
-        void set(size_t row, size_t col, int value);
-        size_t antidiagonal_size(size_t antidiagonal_index) const;
-        size_t antidiagonals_count() const;
-        const std::string& get_filename() const;
-    private:
-        BigArray();
-        BigArray(const BigArray&) = delete;
-        BigArray& operator=(const BigArray&) = delete;
-        BigArray(BigArray&&) = delete;
-        BigArray& operator=(BigArray&&) = delete;
-
-        void create_new(const std::string& filename, size_t rows, size_t cols);
-        void load_from_file(const std::string& filename);
-    private:
-        std::string m_filename;
-        size_t m_rows;
-        size_t m_cols;
-        size_t m_file_size;
-        int m_fd;
-        void* m_mmapped_ptr;
-        int32_t* m_data;
+        virtual ~IBigArray() = default;
+        virtual int32_t get(size_t row, size_t col) const = 0;
+        virtual void set(size_t row, size_t col, int value) = 0;
+        virtual const std::string& get_filename() const = 0;
 };
+
+
+std::unique_ptr<IBigArray> make_new(size_t rows, size_t  cols);
+std::unique_ptr<IBigArray> make_new_antidiagonal(size_t rows, size_t  cols);
+std::unique_ptr<IBigArray> load(const std::string& filename);
 
 
 #endif // BIG_ARRAY_INCLUDED
