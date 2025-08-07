@@ -216,12 +216,10 @@ const std::string& BigArrayBase::get_filename() const {
 
 class BigArrayRect: public BigArrayBase {
     protected:
-        size_t find_flat_index(size_t row, size_t col) const;
+        inline size_t find_flat_index(size_t row, size_t col) const override {
+            return row * m_cols + col;
+        }
 };
-
-size_t BigArrayRect::find_flat_index(size_t row, size_t col) const {
-    return row * m_cols + col;
-}
 
 
 std::unique_ptr<IBigArray> make_new(size_t rows, size_t cols) {
