@@ -6,8 +6,8 @@
 #include <sys/stat.h>
 
 constexpr size_t HEADER_SIZE = sizeof(size_t) * 2;
+constexpr std::string BASE_DIR = "/tmp/";
 
-#define BASE_DIR "/tmp/"
 
 class BigArrayBase: public IBigArray {
 
@@ -225,7 +225,7 @@ size_t BigArrayRect::find_flat_index(size_t row, size_t col) const {
 
 
 std::unique_ptr<IBigArray> make_new(size_t rows, size_t cols) {
-    const std::string filename = std::string(BASE_DIR) + generate_random_name();
+    const std::string filename = BASE_DIR + generate_random_name();
     auto big_array = std::unique_ptr<BigArrayRect>(new BigArrayRect());
     big_array->create_new(filename, rows, cols);
     return big_array;
