@@ -19,12 +19,15 @@ class BigArrayBase: public IBigArray {
         void set(size_t row, size_t col, int value) override;
         const std::string& get_filename() const override;
 
+        virtual size_t find_flat_index(size_t row, size_t col)  const = 0;
+
         void create_new(const std::string& filename, size_t rows, size_t cols);
         void load_from_file(const std::string& filename);
         size_t antidiagonal_size(size_t antidiagonal_index) const;
         size_t antidiagonals_count() const;
 
-        virtual size_t find_flat_index(size_t row, size_t col)  const = 0;
+        inline size_t get_rows_count() const { return m_rows; }
+        inline size_t get_cols_count() const { return m_cols; }
 
     private:
         BigArrayBase(const BigArrayBase&) = delete;
@@ -32,7 +35,7 @@ class BigArrayBase: public IBigArray {
         BigArrayBase(BigArrayBase&&) = delete;
         BigArrayBase& operator=(BigArrayBase&&) = delete;
 
-     protected:
+     private:
         std::string m_filename;
         size_t m_rows;
         size_t m_cols;
@@ -217,7 +220,7 @@ const std::string& BigArrayBase::get_filename() const {
 class BigArrayRect: public BigArrayBase {
     protected:
         inline size_t find_flat_index(size_t row, size_t col) const override {
-            return row * m_cols + col;
+            return row * get_cols_count() + col;
         }
 };
 
