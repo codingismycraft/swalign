@@ -1,8 +1,10 @@
 #include "big_array.h"
 #include "utils.h"
 #include <cstring>
+#include <vector>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <algorithm>
 #include <sys/stat.h>
 
 constexpr size_t HEADER_SIZE = sizeof(size_t) * 2;
@@ -18,13 +20,11 @@ class BigArrayBase: public IBigArray {
         int32_t get(size_t row, size_t col) const override;
         void set(size_t row, size_t col, int value) override;
         const std::string& get_filename() const override;
-
         virtual size_t find_flat_index(size_t row, size_t col)  const = 0;
 
-        void create_new(const std::string& filename, size_t rows, size_t cols);
-        void load_from_file(const std::string& filename);
-        size_t antidiagonal_size(size_t antidiagonal_index) const;
-        size_t antidiagonals_count() const;
+
+        virtual void create_new(const std::string& filename, size_t rows, size_t cols);
+        virtual void load_from_file(const std::string& filename);
 
         inline size_t get_rows_count() const { return m_rows; }
         inline size_t get_cols_count() const { return m_cols; }
@@ -57,28 +57,6 @@ BigArrayBase::BigArrayBase() :
 {
 }
 
-size_t BigArrayBase::antidiagonals_count() const{
-    if (m_rows == 0 || m_cols == 0) {
-        return 0;
-    }
-    return m_rows + m_cols - 1;
-}
-
-size_t BigArrayBase::antidiagonal_size(size_t antidiagonal_index) const {
-    if (antidiagonal_index >= antidiagonals_count()) {
-        throw std::out_of_range("Antidiagonal index out of bounds");
-    }
-    const size_t min_dim = std::min(m_rows, m_cols);
-    const size_t max_dim = std::max(m_rows, m_cols);
-
-    if (antidiagonal_index < min_dim) {
-        return antidiagonal_index + 1;
-    } else if (antidiagonal_index < max_dim) {
-        return min_dim;
-    } else {
-        return m_rows + m_cols - 1 - antidiagonal_index;
-    }
-}
 
 void BigArrayBase::create_new(const std::string& filename, size_t rows, size_t cols)
 {
@@ -202,14 +180,16 @@ int32_t BigArrayBase::get(size_t row, size_t col) const {
     if (row >= m_rows || col >= m_cols) {
         throw std::out_of_range("Index out of bounds");
     }
-    return m_data[find_flat_index(row, col)];
+    const auto index = find_flat_index(row, col);
+    return m_data[index];
 }
 
 void BigArrayBase::set(size_t row, size_t col, int32_t value) {
     if (row >= m_rows || col >= m_cols) {
         throw std::out_of_range("Index out of bounds");
     }
-    m_data[find_flat_index(row, col)] = value;
+    const auto index = find_flat_index(row, col);
+    m_data[index] = value;
 }
 
 const std::string& BigArrayBase::get_filename() const {
@@ -220,8 +200,91 @@ const std::string& BigArrayBase::get_filename() const {
 class BigArrayRect: public BigArrayBase {
     protected:
         inline size_t find_flat_index(size_t row, size_t col) const override {
-            return row * get_cols_count() + col;
+            const auto index = row * get_cols_count() + col;
+            return index;
         }
+};
+
+class BigArrayAntidiagonal: public BigArrayBase {
+    public:
+        virtual void create_new(const std::string& filename, size_t rows, size_t cols) override {
+            BigArrayBase::create_new(filename, rows, cols);
+            precalc_antidiagonal_sizes();
+        }
+        virtual void load_from_file(const std::string& filename) override {
+            BigArrayBase::load_from_file(filename);
+            precalc_antidiagonal_sizes();
+        }
+    protected:
+        inline size_t find_flat_index(size_t row, size_t col) const override {
+            const auto index = antidiagonal_index(row, col);
+            return index;
+        }
+
+    private:
+
+        size_t antidiagonal_offset(size_t row, size_t col) const {
+            const size_t d = row + col;
+            size_t offset = 0;
+            for (size_t k = 0; k < d; ++k)
+                offset += m_antidiagonal_sizes[k];
+            return offset;
+        }
+
+        size_t antidiagonal_index(size_t row, size_t col) const {
+            const size_t d = row + col;
+            const size_t cols = get_cols_count();
+            // Calculate offset: total elements in previous antidiagonals
+            size_t offset = 0;
+            for (size_t k = 0; k < d; ++k)
+                offset += m_antidiagonal_sizes[k];
+
+            // Position within antidiagonal
+            const size_t min_val = (d >= (cols - 1)) ? (d - (cols - 1)) : 0;
+            const size_t pos_in_antidiagonal = row - min_val;
+
+            return offset + pos_in_antidiagonal;
+        }
+
+        void precalc_antidiagonal_sizes() {
+            m_antidiagonal_sizes.clear();
+            for (size_t i = 0; i < antidiagonals_count(); ++i) {
+                m_antidiagonal_sizes.push_back(antidiagonal_size(i));
+            }
+
+        }
+
+        size_t antidiagonal_size(size_t antidiagonal_index) const {
+            if (antidiagonal_index >= antidiagonals_count()) {
+                throw std::out_of_range("Antidiagonal index out of bounds");
+            }
+            const size_t rows = get_rows_count();
+            const size_t cols = get_cols_count();
+
+            const size_t min_dim = std::min(rows, cols);
+            const size_t max_dim = std::max(rows, cols);
+
+            if (antidiagonal_index < min_dim) {
+                return antidiagonal_index + 1;
+            } else if (antidiagonal_index < max_dim) {
+                return min_dim;
+            } else {
+                return rows + cols - 1 - antidiagonal_index;
+            }
+        }
+
+        inline size_t antidiagonals_count() const {
+            const size_t rows = get_rows_count();
+            const size_t cols = get_cols_count();
+
+            if (rows == 0 || cols == 0) {
+                return 0;
+            }
+            return rows + cols - 1;
+        }
+
+        std::vector<size_t> m_antidiagonal_sizes;
+
 };
 
 
@@ -232,9 +295,21 @@ std::unique_ptr<IBigArray> make_new(size_t rows, size_t cols) {
     return big_array;
 }
 
-
 std::unique_ptr<IBigArray> load(const std::string& filename) {
     auto big_array = std::unique_ptr<BigArrayRect>(new BigArrayRect());
+    big_array->load_from_file(filename);
+    return big_array;
+}
+
+std::unique_ptr<IBigArray> make_new_antidiagonal(size_t rows, size_t cols) {
+    const std::string filename = BASE_DIR + generate_random_name();
+    auto big_array = std::unique_ptr<BigArrayAntidiagonal>(new BigArrayAntidiagonal());
+    big_array->create_new(filename, rows, cols);
+    return big_array;
+}
+
+std::unique_ptr<IBigArray> load_antidiagonal(const std::string& filename) {
+    auto big_array = std::unique_ptr<BigArrayAntidiagonal>(new BigArrayAntidiagonal());
     big_array->load_from_file(filename);
     return big_array;
 }

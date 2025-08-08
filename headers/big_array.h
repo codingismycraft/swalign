@@ -30,8 +30,10 @@ class IBigArray{
 
 
 std::unique_ptr<IBigArray> make_new(size_t rows, size_t  cols);
-std::unique_ptr<IBigArray> make_new_antidiagonal(size_t rows, size_t  cols);
 std::unique_ptr<IBigArray> load(const std::string& filename);
+
+std::unique_ptr<IBigArray> make_new_antidiagonal(size_t rows, size_t  cols);
+std::unique_ptr<IBigArray> load_antidiagonal(const std::string& filename);
 
 
 #endif // BIG_ARRAY_INCLUDED
