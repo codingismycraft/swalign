@@ -131,9 +131,9 @@ smith_waterman1: $(BIN_DIR)/smith_waterman1
 	$(BIN_DIR)/smith_waterman1
 
 
-$(BIN_DIR)/data_input: $(SRC_DIR)/data_input.cu $(OBJDIR)/local_alignment.o
+$(BIN_DIR)/data_input: $(SRC_DIR)/data_input.cu $(OBJDIR)/local_alignment.o $(OBJDIR)/aligner.o $(OBJDIR)/big_array.o $(OBJDIR)/utils.o
 	@mkdir -p $(BIN_DIR)
-	$(CUDA_CXX) $(NVCCFLAGS) $(SRC_DIR)/data_input.cu -o $(BIN_DIR)/data_input $(OBJDIR)/local_alignment.o
+	$(CUDA_CXX) $(NVCCFLAGS) $(SRC_DIR)/data_input.cu -o $(BIN_DIR)/data_input $(OBJDIR)/local_alignment.o $(OBJDIR)/aligner.o $(OBJDIR)/big_array.o $(OBJDIR)/utils.o
 
 
 data_input: $(BIN_DIR)/data_input
