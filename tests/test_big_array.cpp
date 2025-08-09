@@ -72,6 +72,55 @@ void test_antidiagonals() {
             assert(retrieved == expected);
         }
     }
+
+    const size_t expected_antidiagonals = 4;
+    assert(p_big_array1->get_antidiagonals_count() == expected_antidiagonals);
+
+    assert(p_big_array1->get_antidiagonal_size(0) == 1);
+    assert(p_big_array1->get_antidiagonal_size(1) == 2);
+    assert(p_big_array1->get_antidiagonal_size(2) == 2);
+    assert(p_big_array1->get_antidiagonal_size(3) == 1);
+
+    try{
+        auto x = p_big_array1->get_antidiagonal_size(1023);
+        std::cout << "Unexpectedly retrieved size: " << x << std::endl;
+        assert(false); // Should not reach here
+    } catch (const std::out_of_range& e) {
+        // Expected
+    }
+
+    const size_t max_size = p_big_array1->get_max_antidiagonal_size() * sizeof(int32_t);
+    int32_t* buffer = (int32_t*)malloc(max_size);
+
+    size_t copied = p_big_array1->copy_diagonal(0, buffer, max_size);
+    assert(copied == 1);
+    assert(buffer[0] == 0);
+
+    copied = p_big_array1->copy_diagonal(1, buffer, max_size);
+    assert(copied == 2);
+    assert(buffer[0] == 1);
+    assert(buffer[1] == 3);
+
+    copied = p_big_array1->copy_diagonal(2, buffer, max_size);
+    assert(copied == 2);
+    assert(buffer[0] == 2);
+    assert(buffer[1] == 4);
+
+    copied = p_big_array1->copy_diagonal(3, buffer, max_size);
+    assert(copied == 1);
+    assert(buffer[0] == 5);
+
+    try{
+        auto x = p_big_array1->copy_diagonal(4, buffer, max_size);
+        std::cout << "Copy invalid diagonal did not threw exception. Seems that it copied" << x << std::endl;
+        assert(false); // Should not reach here
+    } catch (const std::out_of_range& e) {
+        // Expected
+    }
+
+    free(buffer);
+    buffer = nullptr;
+
 }
 
 

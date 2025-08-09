@@ -20,20 +20,27 @@
 #include <memory>
 
 class IBigArray{
-
     public:
         virtual ~IBigArray() = default;
         virtual int32_t get(size_t row, size_t col) const = 0;
-        virtual void set(size_t row, size_t col, int value) = 0;
+        virtual void set(size_t row, size_t col, int32_t value) = 0;
         virtual const std::string& get_filename() const = 0;
+};
+
+class IBigArrayAntidiagonal : public IBigArray {
+    public:
+        virtual size_t get_antidiagonals_count() const = 0;
+        virtual size_t get_antidiagonal_size(size_t antidiagonal_index) const = 0;
+        virtual size_t get_max_antidiagonal_size() const = 0;
+        virtual size_t copy_diagonal(size_t antidiagonal_index, int32_t* const buffer, size_t buffer_length) const = 0;
 };
 
 
 std::unique_ptr<IBigArray> make_new(size_t rows, size_t  cols);
 std::unique_ptr<IBigArray> load(const std::string& filename);
 
-std::unique_ptr<IBigArray> make_new_antidiagonal(size_t rows, size_t  cols);
-std::unique_ptr<IBigArray> load_antidiagonal(const std::string& filename);
+std::unique_ptr<IBigArrayAntidiagonal> make_new_antidiagonal(size_t rows, size_t  cols);
+std::unique_ptr<IBigArrayAntidiagonal> load_antidiagonal(const std::string& filename);
 
 
 #endif // BIG_ARRAY_INCLUDED
