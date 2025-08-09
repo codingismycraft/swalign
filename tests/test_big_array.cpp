@@ -118,6 +118,13 @@ void test_antidiagonals() {
         // Expected
     }
 
+    int32_t buffer_const[10] ;
+    buffer_const[0] = 123;
+    copied = p_big_array1->assign_from_diagonal(0, buffer_const);
+    const auto x = p_big_array1->get(0,0);
+    assert(x == 123);
+    std::cout << "Value at (0,0) after assign from diagonal 0: " << x << std::endl;
+
     free(buffer);
     buffer = nullptr;
 

@@ -255,6 +255,20 @@ class BigArrayAntidiagonal: public IBigArrayAntidiagonal, public BigArrayBase {
             return antidiagonal_size;
         }
 
+        size_t assign_from_diagonal(size_t antidiagonal_index, const int32_t* const buffer) override {
+            if (antidiagonal_index >= get_antidiagonals_count()) {
+                throw std::out_of_range("Antidiagonal index out of bounds");
+            }
+
+            const auto antidiagonal_size = get_antidiagonal_size(antidiagonal_index);
+            size_t offset = 0;
+            for (size_t k = 0; k < antidiagonal_index; ++k){
+                offset += m_antidiagonal_size[k];
+            }
+
+            memcpy(m_data + offset, buffer, antidiagonal_size * sizeof(int32_t));
+            return antidiagonal_size;
+        }
 
         void create_new(const std::string& filename, size_t rows, size_t cols) override {
             BigArrayBase::create_new(filename, rows, cols);

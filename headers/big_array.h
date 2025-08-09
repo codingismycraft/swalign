@@ -33,6 +33,7 @@ class IBigArrayAntidiagonal : public IBigArray {
         virtual size_t get_antidiagonal_size(size_t antidiagonal_index) const = 0;
         virtual size_t get_max_antidiagonal_size() const = 0;
         virtual size_t copy_diagonal(size_t antidiagonal_index, int32_t* const buffer, size_t buffer_length) const = 0;
+        virtual size_t assign_from_diagonal(size_t antidiagonal_index, const int32_t* const buffer) = 0;
 };
 
 
